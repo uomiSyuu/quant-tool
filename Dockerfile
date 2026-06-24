@@ -33,5 +33,6 @@ RUN mkdir -p quant_tool/.sec_cache
 # 端口
 EXPOSE 5001
 
-# 启动 — 直接运行Python应用，读取$PORT环境变量
-CMD python data_proxy.py
+# 启动应用 — 直接运行Python，读取$PORT环境变量
+# ENTRYPOINT不会被Platform覆盖，比CMD更可靠
+ENTRYPOINT ["python", "data_proxy.py"]
