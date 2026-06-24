@@ -29,5 +29,5 @@ RUN mkdir -p quant_tool/.sec_cache
 # 端口
 EXPOSE 5001
 
-# 启动（单worker避免westock并发冲突）
-CMD gunicorn data_proxy:app --bind 0.0.0.0:$PORT --timeout 180 --workers 1 --keep-alive 5
+# 启动 — 直接运行Python应用，读取$PORT环境变量
+CMD python data_proxy.py
