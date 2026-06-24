@@ -866,7 +866,11 @@ def fetch_live(symbol):
                 fd["market_cap"] = usq.get("market_cap") or fd.get("market_cap")
                 if usq.get("high_52w"): fd["high_52w"] = usq["high_52w"]
                 if usq.get("low_52w"): fd["low_52w"] = usq["low_52w"]
-                if usq.get("change_pct"): fd["change_pct"] = usq["change_pct"]
+                if usq.get("change_pct"):
+                    cp = usq["change_pct"]
+                    if abs(cp) > 1.0:
+                        cp = cp / 100.0
+                    fd["change_pct"] = cp
                 if usq.get("currency"): fd["currency"] = usq["currency"]
                 if usq.get("sector"): fd["sector"] = usq["sector"]
                 if usq.get("beta"): fd["beta"] = usq["beta"]
