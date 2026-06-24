@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: quant-tool
+    runtime: docker
+    repo: https://github.com/uomiSyuu/quant-tool
+    branch: main
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    envVars:
+      - key: ACCESS_KEY
+        value: quant888

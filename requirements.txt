@@ -1,0 +1,5 @@
+flask>=3.0
+requests>=2.31
+gunicorn>=21.2
+# yfinance>=1.4  # 可选：Yahoo备胎，Render IP可能解封
+# akshare>=1.0   # 可选：A股备用

@@ -1,0 +1,7482 @@
+{
+  "version": "v8.7",
+  "last_updated": "2026-06-22",
+  "chains": {
+    "ai_infra": {
+      "name": "AI 算力基础设施",
+      "market": "US",
+      "timeframe": "2年",
+      "chain_type": "supply_chain",
+      "keywords": [
+        "AI",
+        "算力",
+        "GPU",
+        "HBM",
+        "数据中心",
+        "CAPEX",
+        "人工智能"
+      ],
+      "canary_stocks": [
+        "NVDA",
+        "TSM",
+        "MSFT"
+      ],
+      "nodes": {
+        "gpu_chip": {
+          "name": "GPU/AI芯片",
+          "companies": [
+            "NVDA",
+            "AMD",
+            "INTC"
+          ],
+          "supplier_count": 3,
+          "bottleneck": false,
+          "keywords": [
+            "GPU",
+            "AI芯片",
+            "CUDA",
+            "Blackwell",
+            "NVIDIA",
+            "AMD"
+          ],
+          "upstream": [
+            "hbm_memory"
+          ],
+          "downstream": [
+            "advanced_pkg"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.5,
+              "downstream": 1.3,
+              "upstream": 1.1
+            },
+            "supply_down": {
+              "self": -1.5,
+              "downstream": -1.3,
+              "upstream": 0.5
+            }
+          },
+          "sensitivity": 1.5,
+          "bottleneck_weight": 1.0
+        },
+        "hbm_memory": {
+          "name": "HBM存储",
+          "companies": [
+            "MU"
+          ],
+          "supplier_count": 3,
+          "bottleneck": false,
+          "keywords": [
+            "HBM",
+            "高带宽内存",
+            "HBM3",
+            "HBM4",
+            "MU",
+            "SNDK",
+            "SK海力士"
+          ],
+          "upstream": [
+            "advanced_pkg"
+          ],
+          "downstream": [
+            "gpu_chip"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.5,
+              "downstream": 1.2,
+              "upstream": 0.8
+            },
+            "supply_down": {
+              "self": -1.5,
+              "downstream": -1.1,
+              "upstream": 0.3
+            }
+          },
+          "sensitivity": 1.5,
+          "bottleneck_weight": 1.4
+        },
+        "advanced_pkg": {
+          "name": "先进封装",
+          "companies": [
+            "TSM"
+          ],
+          "supplier_count": 2,
+          "bottleneck": true,
+          "keywords": [
+            "先进封装",
+            "CoWoS",
+            "3D封装",
+            "TSM",
+            "台积电"
+          ],
+          "upstream": [
+            "glass_substrate",
+            "gpu_chip",
+            "optical_module",
+            "semi_equip"
+          ],
+          "downstream": [
+            "test_burnin"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.4,
+              "downstream": 0.9,
+              "upstream": 0.7
+            },
+            "supply_down": {
+              "self": -1.5,
+              "downstream": -1.0,
+              "upstream": 0.3
+            }
+          },
+          "sensitivity": 1.4,
+          "bottleneck_weight": 1.5
+        },
+        "silicon_photonics": {
+          "name": "硅光代工",
+          "companies": [
+            "TSEM",
+            "GFS"
+          ],
+          "supplier_count": 3,
+          "bottleneck": false,
+          "keywords": [
+            "硅光",
+            "光子",
+            "CPO",
+            "共封装",
+            "TSEM",
+            "GFS"
+          ],
+          "upstream": [
+            "inp_substrate",
+            "semi_equip"
+          ],
+          "downstream": [
+            "optical_module"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.3,
+              "downstream": 1.0,
+              "upstream": 0.7
+            },
+            "supply_down": {
+              "self": -1.3,
+              "downstream": -1.0,
+              "upstream": 0.4
+            }
+          },
+          "sensitivity": 1.3,
+          "bottleneck_weight": 1.2
+        },
+        "optical_module": {
+          "name": "光模块",
+          "companies": [
+            "LITE",
+            "COHR",
+            "AAOI",
+            "FN"
+          ],
+          "supplier_count": 4,
+          "bottleneck": false,
+          "keywords": [
+            "光模块",
+            "光通信",
+            "800G",
+            "1.6T",
+            "LITE",
+            "COHR",
+            "AAOI",
+            "FN"
+          ],
+          "upstream": [
+            "silicon_photonics",
+            "laser_diode",
+            "dsp_chip"
+          ],
+          "downstream": [
+            "advanced_pkg"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.4,
+              "downstream": 0.7,
+              "upstream": 0.8
+            },
+            "supply_down": {
+              "self": -1.4,
+              "downstream": -0.7,
+              "upstream": 0.3
+            }
+          },
+          "sensitivity": 1.4,
+          "bottleneck_weight": 1.2
+        },
+        "laser_diode": {
+          "name": "激光器",
+          "companies": [
+            "LITE",
+            "COHR",
+            "AAOI",
+            "SIVE"
+          ],
+          "supplier_count": 4,
+          "bottleneck": false,
+          "keywords": [
+            "激光器",
+            "VCSEL",
+            "EML",
+            "LITE",
+            "COHR",
+            "AAOI"
+          ],
+          "upstream": [
+            "silicon_photonics"
+          ],
+          "downstream": [
+            "optical_module"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.2,
+              "downstream": 0.9,
+              "upstream": 0.6
+            },
+            "supply_down": {
+              "self": -1.2,
+              "downstream": -0.9,
+              "upstream": 0.4
+            }
+          },
+          "sensitivity": 1.2,
+          "bottleneck_weight": 1.1
+        },
+        "inp_substrate": {
+          "name": "InP衬底",
+          "companies": [
+            "AXTI"
+          ],
+          "supplier_count": 3,
+          "bottleneck": true,
+          "keywords": [
+            "InP",
+            "磷化铟",
+            "衬底",
+            "AXTI"
+          ],
+          "upstream": [
+            "semi_equip"
+          ],
+          "downstream": [
+            "silicon_photonics"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.4,
+              "downstream": 1.2,
+              "upstream": 0.5
+            },
+            "supply_down": {
+              "self": -1.5,
+              "downstream": -1.3,
+              "upstream": 0.3
+            }
+          },
+          "sensitivity": 1.5,
+          "bottleneck_weight": 1.6
+        },
+        "semi_equip": {
+          "name": "半导体设备",
+          "companies": [
+            "ASML",
+            "AMAT",
+            "LRCX",
+            "KLAC"
+          ],
+          "supplier_count": 3,
+          "bottleneck": true,
+          "keywords": [
+            "光刻机",
+            "蚀刻",
+            "半导体设备",
+            "ASML",
+            "沉积"
+          ],
+          "upstream": [],
+          "downstream": [
+            "inp_substrate",
+            "silicon_photonics",
+            "advanced_pkg"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.3,
+              "downstream": 0.8,
+              "upstream": 1.0
+            },
+            "supply_down": {
+              "self": -1.4,
+              "downstream": -0.9,
+              "upstream": 0.3
+            }
+          },
+          "sensitivity": 1.2,
+          "bottleneck_weight": 1.4
+        },
+        "eda_tools": {
+          "name": "EDA工具",
+          "companies": [
+            "CDNS",
+            "SNPS"
+          ],
+          "supplier_count": 2,
+          "bottleneck": true,
+          "keywords": [
+            "EDA",
+            "电子设计",
+            "芯片设计工具",
+            "Cadence",
+            "Synopsys"
+          ],
+          "upstream": [],
+          "downstream": [
+            "gpu_chip",
+            "semi_equip"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.2,
+              "downstream": 0.6,
+              "upstream": 1.0
+            },
+            "supply_down": {
+              "self": -1.3,
+              "downstream": -0.7,
+              "upstream": 0.3
+            }
+          },
+          "sensitivity": 1.1,
+          "bottleneck_weight": 1.3
+        },
+        "dsp_chip": {
+          "name": "光DSP",
+          "companies": [
+            "MRVL",
+            "AVGO"
+          ],
+          "supplier_count": 2,
+          "bottleneck": true,
+          "keywords": [
+            "DSP",
+            "光DSP",
+            "MRVL",
+            "AVGO",
+            "博通"
+          ],
+          "upstream": [],
+          "downstream": [
+            "optical_module"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.3,
+              "downstream": 0.8,
+              "upstream": 1.0
+            },
+            "supply_down": {
+              "self": -1.3,
+              "downstream": -0.8,
+              "upstream": 0.2
+            }
+          },
+          "sensitivity": 1.3,
+          "bottleneck_weight": 1.5
+        },
+        "test_burnin": {
+          "name": "测试烧入",
+          "companies": [
+            "AEHR",
+            "TER",
+            "KEYS",
+            "ONTO"
+          ],
+          "supplier_count": 4,
+          "bottleneck": false,
+          "keywords": [
+            "测试",
+            "老化",
+            "burn-in",
+            "AEHR",
+            "TER"
+          ],
+          "upstream": [
+            "advanced_pkg",
+            "semi_equip"
+          ],
+          "downstream": [
+            "power_cool"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.1,
+              "downstream": 0.6,
+              "upstream": 0.5
+            },
+            "supply_down": {
+              "self": -1.1,
+              "downstream": -0.6,
+              "upstream": 0.3
+            }
+          },
+          "sensitivity": 1.0,
+          "bottleneck_weight": 1.0
+        },
+        "glass_substrate": {
+          "name": "玻璃基板",
+          "companies": [],
+          "supplier_count": 2,
+          "bottleneck": true,
+          "keywords": [
+            "玻璃基板",
+            "先进基板"
+          ],
+          "upstream": [
+            "semi_equip"
+          ],
+          "downstream": [
+            "advanced_pkg"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.2,
+              "downstream": 0.8,
+              "upstream": 0.5
+            },
+            "supply_down": {
+              "self": -1.2,
+              "downstream": -0.8,
+              "upstream": 0.3
+            }
+          },
+          "sensitivity": 1.1,
+          "bottleneck_weight": 1.3
+        },
+        "power_cool": {
+          "name": "电力/冷却",
+          "companies": [
+            "VRT",
+            "CEG",
+            "VST"
+          ],
+          "supplier_count": 5,
+          "bottleneck": false,
+          "keywords": [
+            "电力",
+            "冷却",
+            "液冷",
+            "数据中心电力",
+            "VRT",
+            "CEG",
+            "VST",
+            "Vertiv"
+          ],
+          "upstream": [
+            "test_burnin"
+          ],
+          "downstream": [],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.2,
+              "downstream": 0.0,
+              "upstream": 0.5
+            },
+            "supply_down": {
+              "self": -1.2,
+              "downstream": 0.0,
+              "upstream": 0.3
+            }
+          },
+          "sensitivity": 1.1,
+          "bottleneck_weight": 1.0
+        }
+      }
+    },
+    "semicon": {
+      "name": "半导体全产业链",
+      "market": "US",
+      "timeframe": "2年",
+      "chain_type": "supply_chain",
+      "keywords": [
+        "半导体",
+        "晶圆",
+        "芯片",
+        "代工",
+        "foundry",
+        "wafer"
+      ],
+      "canary_stocks": [
+        "TSM",
+        "ASML",
+        "AMAT"
+      ],
+      "nodes": {
+        "chip_design": {
+          "name": "芯片设计",
+          "companies": [
+            "NVDA",
+            "AMD",
+            "QCOM",
+            "AVGO",
+            "MRVL"
+          ],
+          "supplier_count": 10,
+          "bottleneck": false,
+          "keywords": [
+            "芯片设计",
+            "IC设计",
+            "SoC",
+            "NVDA",
+            "AMD",
+            "QCOM"
+          ],
+          "upstream": [
+            "chip_eda"
+          ],
+          "downstream": [
+            "chip_foundry"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.4,
+              "downstream": 1.2,
+              "upstream": 0.7
+            },
+            "supply_down": {
+              "self": -1.4,
+              "downstream": -1.2,
+              "upstream": 0.4
+            }
+          },
+          "sensitivity": 1.4,
+          "bottleneck_weight": 1.0
+        },
+        "chip_foundry": {
+          "name": "晶圆代工",
+          "companies": [
+            "TSM",
+            "GFS",
+            "UMC"
+          ],
+          "supplier_count": 3,
+          "bottleneck": true,
+          "keywords": [
+            "晶圆",
+            "代工",
+            "foundry",
+            "TSM",
+            "TSMC",
+            "台积电",
+            "UMC"
+          ],
+          "upstream": [
+            "chip_design",
+            "chip_equip",
+            "chip_materials"
+          ],
+          "downstream": [
+            "compound_semi"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.4,
+              "downstream": 0.6,
+              "upstream": 0.9
+            },
+            "supply_down": {
+              "self": -1.5,
+              "downstream": -0.7,
+              "upstream": 0.3
+            }
+          },
+          "sensitivity": 1.4,
+          "bottleneck_weight": 1.5
+        },
+        "chip_equip": {
+          "name": "设备",
+          "companies": [
+            "ASML",
+            "AMAT",
+            "LRCX",
+            "KLAC",
+            "TER"
+          ],
+          "supplier_count": 5,
+          "bottleneck": true,
+          "keywords": [
+            "光刻",
+            "蚀刻",
+            "薄膜",
+            "半导体设备",
+            "ASML",
+            "AMAT"
+          ],
+          "upstream": [],
+          "downstream": [
+            "chip_foundry",
+            "compound_semi"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.3,
+              "downstream": 1.0,
+              "upstream": 0.9
+            },
+            "supply_down": {
+              "self": -1.4,
+              "downstream": -1.1,
+              "upstream": 0.3
+            }
+          },
+          "sensitivity": 1.3,
+          "bottleneck_weight": 1.4
+        },
+        "chip_eda": {
+          "name": "EDA/IP",
+          "companies": [
+            "CDNS",
+            "SNPS"
+          ],
+          "supplier_count": 2,
+          "bottleneck": true,
+          "keywords": [
+            "EDA",
+            "芯片设计",
+            "IP授权",
+            "Cadence",
+            "Synopsys"
+          ],
+          "upstream": [],
+          "downstream": [
+            "chip_design"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.2,
+              "downstream": 0.8,
+              "upstream": 1.0
+            },
+            "supply_down": {
+              "self": -1.3,
+              "downstream": -0.8,
+              "upstream": 0.3
+            }
+          },
+          "sensitivity": 1.1,
+          "bottleneck_weight": 1.3
+        },
+        "chip_materials": {
+          "name": "材料",
+          "companies": [
+            "ENTG"
+          ],
+          "supplier_count": 3,
+          "bottleneck": true,
+          "keywords": [
+            "硅片",
+            "光刻胶",
+            "材料",
+            "ENTG",
+            "电子特气"
+          ],
+          "upstream": [],
+          "downstream": [
+            "chip_foundry",
+            "compound_semi"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.2,
+              "downstream": 0.9,
+              "upstream": 0.8
+            },
+            "supply_down": {
+              "self": -1.3,
+              "downstream": -1.0,
+              "upstream": 0.3
+            }
+          },
+          "sensitivity": 1.2,
+          "bottleneck_weight": 1.3
+        },
+        "compound_semi": {
+          "name": "化合物代工",
+          "companies": [],
+          "supplier_count": 2,
+          "bottleneck": true,
+          "keywords": [
+            "化合物",
+            "GaN",
+            "GaAs",
+            "SiC",
+            "碳化硅"
+          ],
+          "upstream": [
+            "chip_foundry",
+            "chip_equip",
+            "chip_materials"
+          ],
+          "downstream": [],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.3,
+              "downstream": 0.0,
+              "upstream": 0.7
+            },
+            "supply_down": {
+              "self": -1.3,
+              "downstream": 0.0,
+              "upstream": 0.3
+            }
+          },
+          "sensitivity": 1.2,
+          "bottleneck_weight": 1.3
+        }
+      }
+    },
+    "new_energy_vehicle": {
+      "name": "新能源车",
+      "market": "US",
+      "timeframe": "2年",
+      "chain_type": "supply_chain",
+      "keywords": [
+        "新能源车",
+        "电动车",
+        "EV",
+        "电池",
+        "充电",
+        "自动驾驶"
+      ],
+      "canary_stocks": [
+        "TSLA"
+      ],
+      "nodes": {
+        "ev_whole": {
+          "name": "整车",
+          "companies": [
+            "TSLA",
+            "LI",
+            "NIO",
+            "XPEV",
+            "RIVN"
+          ],
+          "supplier_count": 10,
+          "bottleneck": false,
+          "keywords": [
+            "新能源车",
+            "电动车",
+            "EV",
+            "特斯拉",
+            "蔚来",
+            "小鹏",
+            "理想"
+          ],
+          "upstream": [
+            "battery",
+            "chip_auto",
+            "charging"
+          ],
+          "downstream": [
+            "charging",
+            "ev_service"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.5,
+              "downstream": 0.0,
+              "upstream": 1.2
+            },
+            "supply_down": {
+              "self": -1.5,
+              "downstream": 0.0,
+              "upstream": 0.5
+            }
+          },
+          "sensitivity": 1.5,
+          "bottleneck_weight": 1.0
+        },
+        "battery": {
+          "name": "电池",
+          "companies": [
+            "TSLA",
+            "QS",
+            "ENVX"
+          ],
+          "supplier_count": 5,
+          "bottleneck": true,
+          "keywords": [
+            "电池",
+            "锂电池",
+            "固态电池",
+            "动力电池"
+          ],
+          "upstream": [
+            "battery_material"
+          ],
+          "downstream": [
+            "ev_whole"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.5,
+              "downstream": 1.1,
+              "upstream": 0.6
+            },
+            "supply_down": {
+              "self": -1.5,
+              "downstream": -1.1,
+              "upstream": 0.3
+            }
+          },
+          "sensitivity": 1.4,
+          "bottleneck_weight": 1.4
+        },
+        "battery_material": {
+          "name": "电池材料",
+          "companies": [
+            "ALB",
+            "SQM"
+          ],
+          "supplier_count": 5,
+          "bottleneck": false,
+          "keywords": [
+            "锂",
+            "钴",
+            "镍",
+            "电池材料",
+            "ALB",
+            "SQM"
+          ],
+          "upstream": [],
+          "downstream": [
+            "battery"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.3,
+              "downstream": 1.0,
+              "upstream": 0.8
+            },
+            "supply_down": {
+              "self": -1.4,
+              "downstream": -1.1,
+              "upstream": 0.3
+            }
+          },
+          "sensitivity": 1.3,
+          "bottleneck_weight": 1.3
+        },
+        "chip_auto": {
+          "name": "车规芯片",
+          "companies": [
+            "QCOM",
+            "NVDA"
+          ],
+          "supplier_count": 5,
+          "bottleneck": false,
+          "keywords": [
+            "车规芯片",
+            "自动驾驶",
+            "智能座舱",
+            "QCOM",
+            "NVDA"
+          ],
+          "upstream": [],
+          "downstream": [
+            "ev_whole"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.2,
+              "downstream": 0.9,
+              "upstream": 0.7
+            },
+            "supply_down": {
+              "self": -1.2,
+              "downstream": -0.9,
+              "upstream": 0.3
+            }
+          },
+          "sensitivity": 1.2,
+          "bottleneck_weight": 1.0
+        },
+        "charging": {
+          "name": "充电设施",
+          "companies": [
+            "CHPT",
+            "EVGO"
+          ],
+          "supplier_count": 5,
+          "bottleneck": true,
+          "keywords": [
+            "充电",
+            "充电桩",
+            "换电",
+            "CHPT",
+            "EVGO"
+          ],
+          "upstream": [],
+          "downstream": [
+            "ev_whole"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.1,
+              "downstream": 0.7,
+              "upstream": 0.5
+            },
+            "supply_down": {
+              "self": -1.1,
+              "downstream": -0.7,
+              "upstream": 0.3
+            }
+          },
+          "sensitivity": 1.0,
+          "bottleneck_weight": 1.3
+        },
+        "ev_service": {
+          "name": "充电/后市场",
+          "companies": [
+            "CHPT",
+            "BLNK",
+            "TSLA"
+          ],
+          "supplier_count": 6,
+          "bottleneck": false,
+          "keywords": [
+            "充电桩",
+            "后市场",
+            "维保",
+            "CHPT",
+            "BLNK"
+          ],
+          "upstream": [
+            "ev_whole"
+          ],
+          "downstream": [],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.1,
+              "upstream": 0.5,
+              "downstream": 0.5
+            },
+            "supply_down": {
+              "self": -1.1,
+              "upstream": -0.5,
+              "downstream": -0.4
+            }
+          },
+          "sensitivity": 0.9,
+          "bottleneck_weight": 1.0
+        }
+      }
+    },
+    "consumer_tech": {
+      "name": "消费电子",
+      "market": "US",
+      "timeframe": "2年",
+      "chain_type": "supply_chain",
+      "keywords": [
+        "消费电子",
+        "手机",
+        "PC",
+        "硬件",
+        "OS",
+        "生态"
+      ],
+      "canary_stocks": [
+        "AAPL"
+      ],
+      "nodes": {
+        "hardware": {
+          "name": "硬件终端",
+          "companies": [
+            "AAPL",
+            "GOOG"
+          ],
+          "supplier_count": 5,
+          "bottleneck": true,
+          "keywords": [
+            "手机",
+            "PC",
+            "消费电子",
+            "AAPL",
+            "苹果",
+            "硬件"
+          ],
+          "upstream": [
+            "semicon_components",
+            "display_panel"
+          ],
+          "downstream": [
+            "retail_distribution"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.4,
+              "downstream": 0.0,
+              "upstream": 1.1
+            },
+            "supply_down": {
+              "self": -1.4,
+              "downstream": 0.0,
+              "upstream": 0.4
+            }
+          },
+          "sensitivity": 1.3,
+          "bottleneck_weight": 1.3
+        },
+        "semicon_components": {
+          "name": "半导体组件",
+          "companies": [
+            "QCOM",
+            "INTC"
+          ],
+          "supplier_count": 5,
+          "bottleneck": true,
+          "keywords": [
+            "芯片",
+            "处理器",
+            "QCOM",
+            "INTC"
+          ],
+          "upstream": [],
+          "downstream": [
+            "hardware"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.2,
+              "downstream": 0.9,
+              "upstream": 0.7
+            },
+            "supply_down": {
+              "self": -1.2,
+              "downstream": -0.9,
+              "upstream": 0.3
+            }
+          },
+          "sensitivity": 1.2,
+          "bottleneck_weight": 1.4
+        },
+        "display_panel": {
+          "name": "显示面板",
+          "companies": [
+            "LG",
+            "SAMSUNG(EQ)"
+          ],
+          "supplier_count": 3,
+          "bottleneck": false,
+          "keywords": [
+            "显示",
+            "屏幕",
+            "OLED",
+            "LCD",
+            "面板"
+          ],
+          "upstream": [],
+          "downstream": [
+            "hardware"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.2,
+              "downstream": 0.8,
+              "upstream": 0.6
+            },
+            "supply_down": {
+              "self": -1.2,
+              "downstream": -0.8,
+              "upstream": 0.3
+            }
+          },
+          "sensitivity": 1.1,
+          "bottleneck_weight": 1.0
+        },
+        "retail_distribution": {
+          "name": "零售分销",
+          "companies": [
+            "BBY",
+            "AMZN",
+            "WMT"
+          ],
+          "supplier_count": 6,
+          "bottleneck": false,
+          "keywords": [
+            "零售",
+            "分销",
+            "渠道",
+            "BBY",
+            "AMZN"
+          ],
+          "upstream": [
+            "hardware"
+          ],
+          "downstream": [],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.1,
+              "upstream": 0.5,
+              "downstream": 0.5
+            },
+            "supply_down": {
+              "self": -1.1,
+              "upstream": -0.5,
+              "downstream": -0.4
+            }
+          },
+          "sensitivity": 0.9,
+          "bottleneck_weight": 1.0
+        }
+      }
+    },
+    "internet_platform": {
+      "name": "互联网平台",
+      "market": "US",
+      "timeframe": "2年",
+      "chain_type": "sector",
+      "keywords": [
+        "互联网",
+        "SaaS",
+        "云计算",
+        "电商",
+        "广告",
+        "社交",
+        "平台"
+      ],
+      "canary_stocks": [
+        "META",
+        "AMZN",
+        "MSFT"
+      ],
+      "nodes": {
+        "social_media": {
+          "name": "社交平台",
+          "companies": [
+            "META",
+            "SNAP"
+          ],
+          "supplier_count": 5,
+          "bottleneck": false,
+          "keywords": [
+            "社交",
+            "META",
+            "Facebook",
+            "Instagram",
+            "SNAP"
+          ],
+          "upstream": [
+            "search_ads"
+          ],
+          "downstream": [
+            "cloud"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.3,
+              "downstream": 0.7,
+              "upstream": 0.6
+            },
+            "supply_down": {
+              "self": -1.3,
+              "downstream": -0.7,
+              "upstream": 0.3
+            }
+          },
+          "sensitivity": 1.2,
+          "bottleneck_weight": 1.0
+        },
+        "ecommerce": {
+          "name": "电商",
+          "companies": [
+            "AMZN",
+            "SE",
+            "MELI"
+          ],
+          "supplier_count": 5,
+          "bottleneck": false,
+          "keywords": [
+            "电商",
+            "Amazon",
+            "亚马逊",
+            "SEA",
+            "Shopee",
+            "MELI"
+          ],
+          "upstream": [
+            "search_ads"
+          ],
+          "downstream": [
+            "cloud"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.3,
+              "downstream": 0.7,
+              "upstream": 0.6
+            },
+            "supply_down": {
+              "self": -1.3,
+              "downstream": -0.7,
+              "upstream": 0.3
+            }
+          },
+          "sensitivity": 1.2,
+          "bottleneck_weight": 1.0
+        },
+        "cloud": {
+          "name": "云计算",
+          "companies": [
+            "AMZN",
+            "MSFT",
+            "GOOGL"
+          ],
+          "supplier_count": 3,
+          "bottleneck": false,
+          "keywords": [
+            "云计算",
+            "AWS",
+            "Azure",
+            "GCP",
+            "数据中心",
+            "云服务"
+          ],
+          "upstream": [
+            "search_ads",
+            "social_media",
+            "ecommerce"
+          ],
+          "downstream": [
+            "saas"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.4,
+              "downstream": 0.8,
+              "upstream": 0.7
+            },
+            "supply_down": {
+              "self": -1.4,
+              "downstream": -0.8,
+              "upstream": 0.3
+            }
+          },
+          "sensitivity": 1.3,
+          "bottleneck_weight": 1.0
+        },
+        "saas": {
+          "name": "SaaS",
+          "companies": [
+            "CRM",
+            "NOW",
+            "DDOG",
+            "NET",
+            "ZS",
+            "SNOW"
+          ],
+          "supplier_count": 10,
+          "bottleneck": false,
+          "keywords": [
+            "SaaS",
+            "软件",
+            "CRM",
+            "NOW",
+            "DDOG",
+            "订阅"
+          ],
+          "upstream": [
+            "cloud"
+          ],
+          "downstream": [],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.3,
+              "downstream": 0.0,
+              "upstream": 0.6
+            },
+            "supply_down": {
+              "self": -1.3,
+              "downstream": 0.0,
+              "upstream": 0.3
+            }
+          },
+          "sensitivity": 1.2,
+          "bottleneck_weight": 1.0
+        },
+        "search_ads": {
+          "name": "搜索广告",
+          "companies": [
+            "GOOGL",
+            "META"
+          ],
+          "supplier_count": 2,
+          "bottleneck": true,
+          "keywords": [
+            "搜索",
+            "广告",
+            "Google",
+            "Yahoo",
+            "在线广告"
+          ],
+          "upstream": [],
+          "downstream": [
+            "social_media",
+            "ecommerce",
+            "cloud"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.3,
+              "downstream": 0.9,
+              "upstream": 0.7
+            },
+            "supply_down": {
+              "self": -1.3,
+              "downstream": -0.9,
+              "upstream": 0.3
+            }
+          },
+          "sensitivity": 1.2,
+          "bottleneck_weight": 1.3
+        }
+      }
+    },
+    "biopharma": {
+      "name": "生物医药",
+      "market": "US",
+      "timeframe": "2年",
+      "chain_type": "supply_chain",
+      "keywords": [
+        "医药",
+        "创新药",
+        "生物技术",
+        "CRO",
+        "医疗器械",
+        "疫苗"
+      ],
+      "canary_stocks": [
+        "LLY",
+        "JNJ",
+        "UNH"
+      ],
+      "nodes": {
+        "big_pharma": {
+          "name": "大型药企",
+          "companies": [
+            "JNJ",
+            "PFE",
+            "ABBV",
+            "MRK",
+            "LLY"
+          ],
+          "supplier_count": 10,
+          "bottleneck": true,
+          "keywords": [
+            "制药",
+            "创新药",
+            "JNJ",
+            "PFE",
+            "LLY",
+            "MRK"
+          ],
+          "upstream": [
+            "cro",
+            "biotech"
+          ],
+          "downstream": [
+            "med_device",
+            "health_ins"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.4,
+              "downstream": 0.6,
+              "upstream": 0.8
+            },
+            "supply_down": {
+              "self": -1.4,
+              "downstream": -0.6,
+              "upstream": 0.3
+            }
+          },
+          "sensitivity": 1.3,
+          "bottleneck_weight": 1.4
+        },
+        "biotech": {
+          "name": "生物科技",
+          "companies": [
+            "AMGN",
+            "GILD",
+            "REGN",
+            "VRTX"
+          ],
+          "supplier_count": 10,
+          "bottleneck": true,
+          "keywords": [
+            "生物技术",
+            "基因",
+            "细胞治疗",
+            "AMGN",
+            "GILD",
+            "VRTX"
+          ],
+          "upstream": [
+            "cro"
+          ],
+          "downstream": [
+            "big_pharma"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.4,
+              "downstream": 0.8,
+              "upstream": 0.6
+            },
+            "supply_down": {
+              "self": -1.4,
+              "downstream": -0.8,
+              "upstream": 0.3
+            }
+          },
+          "sensitivity": 1.4,
+          "bottleneck_weight": 1.3
+        },
+        "med_device": {
+          "name": "医疗器械",
+          "companies": [
+            "SYK",
+            "BSX",
+            "MDT",
+            "TMO"
+          ],
+          "supplier_count": 5,
+          "bottleneck": false,
+          "keywords": [
+            "医疗器械",
+            "SYK",
+            "BSX",
+            "MDT",
+            "TMO"
+          ],
+          "upstream": [
+            "big_pharma"
+          ],
+          "downstream": [],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.2,
+              "downstream": 0.0,
+              "upstream": 0.5
+            },
+            "supply_down": {
+              "self": -1.2,
+              "downstream": 0.0,
+              "upstream": 0.3
+            }
+          },
+          "sensitivity": 1.1,
+          "bottleneck_weight": 1.0
+        },
+        "cro": {
+          "name": "CRO",
+          "companies": [
+            "IQV",
+            "CRL"
+          ],
+          "supplier_count": 3,
+          "bottleneck": false,
+          "keywords": [
+            "CRO",
+            "CDMO",
+            "临床",
+            "IQV",
+            "CRL",
+            "药明"
+          ],
+          "upstream": [],
+          "downstream": [
+            "big_pharma",
+            "biotech"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.3,
+              "downstream": 0.9,
+              "upstream": 0.7
+            },
+            "supply_down": {
+              "self": -1.3,
+              "downstream": -0.9,
+              "upstream": 0.3
+            }
+          },
+          "sensitivity": 1.2,
+          "bottleneck_weight": 1.1
+        },
+        "health_ins": {
+          "name": "健康保险",
+          "companies": [
+            "UNH",
+            "CVS",
+            "HUM"
+          ],
+          "supplier_count": 5,
+          "bottleneck": false,
+          "keywords": [
+            "保险",
+            "医保",
+            "UNH",
+            "CVS",
+            "HUM"
+          ],
+          "upstream": [
+            "big_pharma"
+          ],
+          "downstream": [],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.1,
+              "downstream": 0.0,
+              "upstream": 0.4
+            },
+            "supply_down": {
+              "self": -1.1,
+              "downstream": 0.0,
+              "upstream": 0.3
+            }
+          },
+          "sensitivity": 1.0,
+          "bottleneck_weight": 1.0
+        }
+      }
+    },
+    "financial": {
+      "name": "金融银行",
+      "market": "US",
+      "timeframe": "6个月",
+      "chain_type": "sector",
+      "keywords": [
+        "银行",
+        "投行",
+        "券商",
+        "保险",
+        "支付",
+        "FinTech",
+        "资管"
+      ],
+      "canary_stocks": [
+        "JPM",
+        "GS"
+      ],
+      "nodes": {
+        "inv_bank": {
+          "name": "投资银行",
+          "companies": [
+            "JPM",
+            "GS",
+            "MS"
+          ],
+          "supplier_count": 5,
+          "bottleneck": false,
+          "keywords": [
+            "投行",
+            "券商",
+            "JPM",
+            "JPMorgan",
+            "Goldman",
+            "GS",
+            "MS"
+          ],
+          "upstream": [
+            "retail_bank"
+          ],
+          "downstream": [
+            "exchange"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.3,
+              "downstream": 0.6,
+              "upstream": 0.5
+            },
+            "supply_down": {
+              "self": -1.3,
+              "downstream": -0.6,
+              "upstream": 0.3
+            }
+          },
+          "sensitivity": 1.2,
+          "bottleneck_weight": 1.0
+        },
+        "retail_bank": {
+          "name": "零售银行",
+          "companies": [
+            "BAC",
+            "WFC",
+            "C"
+          ],
+          "supplier_count": 5,
+          "bottleneck": false,
+          "keywords": [
+            "零售银行",
+            "BAC",
+            "WFC",
+            "C",
+            "富国"
+          ],
+          "upstream": [],
+          "downstream": [
+            "inv_bank",
+            "payment"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.3,
+              "downstream": 0.7,
+              "upstream": 0.6
+            },
+            "supply_down": {
+              "self": -1.3,
+              "downstream": -0.7,
+              "upstream": 0.3
+            }
+          },
+          "sensitivity": 1.2,
+          "bottleneck_weight": 1.0
+        },
+        "payment": {
+          "name": "支付",
+          "companies": [
+            "V",
+            "MA",
+            "PYPL",
+            "SQ"
+          ],
+          "supplier_count": 5,
+          "bottleneck": false,
+          "keywords": [
+            "支付",
+            "V",
+            "MA",
+            "PYPL",
+            "SQ",
+            "FinTech",
+            "金融科技"
+          ],
+          "upstream": [
+            "retail_bank"
+          ],
+          "downstream": [
+            "exchange"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.3,
+              "downstream": 0.6,
+              "upstream": 0.5
+            },
+            "supply_down": {
+              "self": -1.3,
+              "downstream": -0.6,
+              "upstream": 0.3
+            }
+          },
+          "sensitivity": 1.2,
+          "bottleneck_weight": 1.0
+        },
+        "exchange": {
+          "name": "交易所",
+          "companies": [
+            "ICE",
+            "CME",
+            "MCO"
+          ],
+          "supplier_count": 3,
+          "bottleneck": true,
+          "keywords": [
+            "交易所",
+            "ICE",
+            "CME",
+            "MCO"
+          ],
+          "upstream": [
+            "inv_bank",
+            "payment"
+          ],
+          "downstream": [],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.2,
+              "downstream": 0.0,
+              "upstream": 0.5
+            },
+            "supply_down": {
+              "self": -1.2,
+              "downstream": 0.0,
+              "upstream": 0.3
+            }
+          },
+          "sensitivity": 1.1,
+          "bottleneck_weight": 1.3
+        }
+      }
+    },
+    "energy_transition": {
+      "name": "能源转型",
+      "market": "US",
+      "timeframe": "2年",
+      "chain_type": "supply_chain",
+      "keywords": [
+        "光伏",
+        "风电",
+        "储能",
+        "太阳能",
+        "氢能",
+        "碳中和",
+        "新能源"
+      ],
+      "canary_stocks": [
+        "FSLR",
+        "NEE",
+        "ENPH"
+      ],
+      "nodes": {
+        "solar": {
+          "name": "光伏",
+          "companies": [
+            "FSLR",
+            "ENPH",
+            "SEDG"
+          ],
+          "supplier_count": 5,
+          "bottleneck": true,
+          "keywords": [
+            "光伏",
+            "太阳能",
+            "FSLR",
+            "ENPH",
+            "SEDG"
+          ],
+          "upstream": [],
+          "downstream": [
+            "solar_mfg",
+            "energy_storage"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.3,
+              "downstream": 0.8,
+              "upstream": 0.6
+            },
+            "supply_down": {
+              "self": -1.3,
+              "downstream": -0.8,
+              "upstream": 0.3
+            }
+          },
+          "sensitivity": 1.3,
+          "bottleneck_weight": 1.35
+        },
+        "wind": {
+          "name": "风电",
+          "companies": [
+            "VWS",
+            "GE",
+            "NEE"
+          ],
+          "supplier_count": 5,
+          "bottleneck": false,
+          "keywords": [
+            "风电",
+            "风力",
+            "风机"
+          ],
+          "upstream": [],
+          "downstream": [
+            "grid"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.2,
+              "downstream": 0.7,
+              "upstream": 0.5
+            },
+            "supply_down": {
+              "self": -1.2,
+              "downstream": -0.7,
+              "upstream": 0.3
+            }
+          },
+          "sensitivity": 1.2,
+          "bottleneck_weight": 1.0
+        },
+        "energy_storage": {
+          "name": "储能",
+          "companies": [
+            "NEE",
+            "CEG",
+            "VST"
+          ],
+          "supplier_count": 5,
+          "bottleneck": true,
+          "keywords": [
+            "储能",
+            "电池储能",
+            "NEE",
+            "CEG",
+            "VST"
+          ],
+          "upstream": [
+            "solar",
+            "wind"
+          ],
+          "downstream": [
+            "grid"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.4,
+              "downstream": 0.9,
+              "upstream": 0.7
+            },
+            "supply_down": {
+              "self": -1.4,
+              "downstream": -0.9,
+              "upstream": 0.3
+            }
+          },
+          "sensitivity": 1.3,
+          "bottleneck_weight": 1.4
+        },
+        "grid": {
+          "name": "并网/储能",
+          "companies": [
+            "NEE",
+            "CEG",
+            "SEDG",
+            "VST"
+          ],
+          "supplier_count": 6,
+          "bottleneck": true,
+          "keywords": [
+            "电网",
+            "输配电",
+            "GEV",
+            "智能电网"
+          ],
+          "upstream": [
+            "solar_mfg",
+            "energy_storage",
+            "wind"
+          ],
+          "downstream": [],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.3,
+              "downstream": 0.0,
+              "upstream": 0.8
+            },
+            "supply_down": {
+              "self": -1.3,
+              "downstream": 0.0,
+              "upstream": 0.3
+            }
+          },
+          "sensitivity": 1.2,
+          "bottleneck_weight": 1.5
+        },
+        "solar_mfg": {
+          "name": "光伏制造",
+          "companies": [
+            "ENPH",
+            "RUN",
+            "FSLR"
+          ],
+          "supplier_count": 6,
+          "bottleneck": false,
+          "keywords": [
+            "光伏",
+            "太阳能组件",
+            "ENPH",
+            "FSLR"
+          ],
+          "upstream": [
+            "solar"
+          ],
+          "downstream": [
+            "grid"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.4,
+              "upstream": 0.7,
+              "downstream": 0.6
+            },
+            "supply_down": {
+              "self": -1.4,
+              "upstream": -0.6,
+              "downstream": -0.5
+            }
+          },
+          "sensitivity": 1.2,
+          "bottleneck_weight": 1.0
+        }
+      }
+    },
+    "consumer_brands": {
+      "name": "消费品牌",
+      "market": "US",
+      "timeframe": "2年",
+      "chain_type": "sector",
+      "keywords": [
+        "消费",
+        "品牌",
+        "奢侈品",
+        "快消",
+        "零售",
+        "餐饮",
+        "服饰"
+      ],
+      "canary_stocks": [
+        "NKE",
+        "MCD",
+        "PG"
+      ],
+      "nodes": {
+        "luxury": {
+          "name": "奢侈品",
+          "companies": [
+            "TIF(LVMH)",
+            "RLC"
+          ],
+          "supplier_count": 3,
+          "bottleneck": false,
+          "keywords": [
+            "奢侈品",
+            "LV",
+            "爱马仕"
+          ],
+          "upstream": [],
+          "downstream": [
+            "retail"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.3,
+              "downstream": 0.7,
+              "upstream": 0.5
+            },
+            "supply_down": {
+              "self": -1.3,
+              "downstream": -0.7,
+              "upstream": 0.3
+            }
+          },
+          "sensitivity": 1.3,
+          "bottleneck_weight": 1.0
+        },
+        "fashion": {
+          "name": "服饰运动",
+          "companies": [
+            "NKE",
+            "LULU",
+            "PVH"
+          ],
+          "supplier_count": 5,
+          "bottleneck": true,
+          "keywords": [
+            "运动",
+            "服饰",
+            "NKE",
+            "Nike"
+          ],
+          "upstream": [],
+          "downstream": [
+            "retail"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.2,
+              "downstream": 0.6,
+              "upstream": 0.5
+            },
+            "supply_down": {
+              "self": -1.2,
+              "downstream": -0.6,
+              "upstream": 0.3
+            }
+          },
+          "sensitivity": 1.2,
+          "bottleneck_weight": 1.3
+        },
+        "fmbg": {
+          "name": "快消品",
+          "companies": [
+            "PG",
+            "KO",
+            "PEP"
+          ],
+          "supplier_count": 5,
+          "bottleneck": true,
+          "keywords": [
+            "快消",
+            "日化",
+            "PG",
+            "KO",
+            "PEP",
+            "宝洁",
+            "可口"
+          ],
+          "upstream": [],
+          "downstream": [
+            "retail"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.2,
+              "downstream": 0.6,
+              "upstream": 0.5
+            },
+            "supply_down": {
+              "self": -1.2,
+              "downstream": -0.6,
+              "upstream": 0.3
+            }
+          },
+          "sensitivity": 1.1,
+          "bottleneck_weight": 1.3
+        },
+        "retail": {
+          "name": "零售",
+          "companies": [
+            "WMT",
+            "COST",
+            "HD"
+          ],
+          "supplier_count": 5,
+          "bottleneck": false,
+          "keywords": [
+            "零售",
+            "WMT",
+            "COST",
+            "HD",
+            "沃尔玛",
+            "Costco"
+          ],
+          "upstream": [
+            "luxury",
+            "fashion",
+            "fmbg",
+            "fast_food"
+          ],
+          "downstream": [],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.3,
+              "downstream": 0.0,
+              "upstream": 0.9
+            },
+            "supply_down": {
+              "self": -1.3,
+              "downstream": 0.0,
+              "upstream": 0.4
+            }
+          },
+          "sensitivity": 1.2,
+          "bottleneck_weight": 1.0
+        },
+        "fast_food": {
+          "name": "餐饮",
+          "companies": [
+            "MCD",
+            "SBUX",
+            "YUM"
+          ],
+          "supplier_count": 5,
+          "bottleneck": false,
+          "keywords": [
+            "餐饮",
+            "快餐",
+            "MCD",
+            "SBUX",
+            "YUM",
+            "麦当劳",
+            "星巴克"
+          ],
+          "upstream": [],
+          "downstream": [
+            "retail"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.2,
+              "downstream": 0.5,
+              "upstream": 0.4
+            },
+            "supply_down": {
+              "self": -1.2,
+              "downstream": -0.5,
+              "upstream": 0.3
+            }
+          },
+          "sensitivity": 1.1,
+          "bottleneck_weight": 1.0
+        },
+        "packaging": {
+          "name": "包装材料",
+          "companies": [
+            "BALL",
+            "SEE",
+            "IP"
+          ],
+          "supplier_count": 6,
+          "bottleneck": true,
+          "keywords": [
+            "包装",
+            "饮料罐",
+            "纸箱",
+            "BALL"
+          ],
+          "upstream": [],
+          "downstream": [
+            "fmbg",
+            "retail"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.0,
+              "upstream": 0.5,
+              "downstream": 0.4
+            },
+            "supply_down": {
+              "self": -1.0,
+              "upstream": -0.4,
+              "downstream": -0.3
+            }
+          },
+          "sensitivity": 0.8,
+          "bottleneck_weight": 1.2
+        }
+      }
+    },
+    "defense_aerospace": {
+      "name": "军工航天",
+      "market": "US",
+      "timeframe": "2年",
+      "chain_type": "supply_chain",
+      "keywords": [
+        "军工",
+        "国防",
+        "航天",
+        "卫星",
+        "导弹",
+        "防务"
+      ],
+      "canary_stocks": [
+        "RTX",
+        "LMT"
+      ],
+      "nodes": {
+        "defense_prime": {
+          "name": "防务主承包商",
+          "companies": [
+            "LMT",
+            "RTX",
+            "NOC",
+            "GD"
+          ],
+          "supplier_count": 5,
+          "bottleneck": true,
+          "keywords": [
+            "军工",
+            "国防",
+            "导弹",
+            "LMT",
+            "RTX",
+            "NOC",
+            "洛克希德"
+          ],
+          "upstream": [
+            "aero_engine",
+            "satellite",
+            "defense_components"
+          ],
+          "downstream": [],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.4,
+              "downstream": 0.0,
+              "upstream": 0.9
+            },
+            "supply_down": {
+              "self": -1.4,
+              "downstream": 0.0,
+              "upstream": 0.4
+            }
+          },
+          "sensitivity": 1.3,
+          "bottleneck_weight": 1.5
+        },
+        "aero_engine": {
+          "name": "航空发动机",
+          "companies": [
+            "GE"
+          ],
+          "supplier_count": 3,
+          "bottleneck": true,
+          "keywords": [
+            "航空发动机",
+            "GE",
+            "罗罗",
+            "普惠"
+          ],
+          "upstream": [
+            "defense_components"
+          ],
+          "downstream": [
+            "defense_prime"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.3,
+              "downstream": 0.9,
+              "upstream": 0.7
+            },
+            "supply_down": {
+              "self": -1.4,
+              "downstream": -1.0,
+              "upstream": 0.3
+            }
+          },
+          "sensitivity": 1.3,
+          "bottleneck_weight": 1.4
+        },
+        "satellite": {
+          "name": "卫星航天",
+          "companies": [
+            "IRDM",
+            "MAXR"
+          ],
+          "supplier_count": 4,
+          "bottleneck": false,
+          "keywords": [
+            "卫星",
+            "航天",
+            "火箭",
+            "SpaceX",
+            "RKLB"
+          ],
+          "upstream": [
+            "defense_components"
+          ],
+          "downstream": [
+            "defense_prime"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.2,
+              "downstream": 0.7,
+              "upstream": 0.5
+            },
+            "supply_down": {
+              "self": -1.2,
+              "downstream": -0.7,
+              "upstream": 0.3
+            }
+          },
+          "sensitivity": 1.2,
+          "bottleneck_weight": 1.0
+        },
+        "defense_components": {
+          "name": "军工零部件",
+          "companies": [
+            "HWM",
+            "TDG",
+            "HEI"
+          ],
+          "supplier_count": 6,
+          "bottleneck": true,
+          "keywords": [
+            "零部件",
+            "航空发动机",
+            "结构件",
+            "HWM",
+            "TDG"
+          ],
+          "upstream": [],
+          "downstream": [
+            "aero_engine",
+            "satellite",
+            "defense_prime"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.4,
+              "upstream": 0.7,
+              "downstream": 0.6
+            },
+            "supply_down": {
+              "self": -1.4,
+              "upstream": -0.6,
+              "downstream": -0.5
+            }
+          },
+          "sensitivity": 1.2,
+          "bottleneck_weight": 1.4
+        }
+      }
+    },
+    "industrial_automation": {
+      "name": "工业制造/自动化",
+      "market": "US",
+      "timeframe": "6个月",
+      "keywords": [
+        "工业",
+        "制造",
+        "自动化",
+        "机器人",
+        "3D打印",
+        "智能制造"
+      ],
+      "canary_stocks": [
+        "CAT",
+        "DE"
+      ],
+      "nodes": {
+        "heavy_mach": {
+          "name": "重型机械",
+          "companies": [
+            "CAT",
+            "DE"
+          ],
+          "supplier_count": 3,
+          "bottleneck": false,
+          "keywords": [
+            "机械",
+            "工程机械",
+            "CAT",
+            "DE",
+            "卡特"
+          ],
+          "upstream": [
+            "sensor",
+            "robot"
+          ],
+          "downstream": [],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.3,
+              "downstream": 0.0,
+              "upstream": 0.7
+            },
+            "supply_down": {
+              "self": -1.3,
+              "downstream": 0.0,
+              "upstream": 0.3
+            }
+          },
+          "sensitivity": 1.2,
+          "bottleneck_weight": 1.0
+        },
+        "robot": {
+          "name": "自动化",
+          "companies": [
+            "ABB",
+            "FANU",
+            "ISRG"
+          ],
+          "supplier_count": 5,
+          "bottleneck": true,
+          "keywords": [
+            "机器人",
+            "自动化",
+            "机械臂",
+            "工业机器人"
+          ],
+          "upstream": [
+            "sensor"
+          ],
+          "downstream": [
+            "factory_automation",
+            "logistics_automation"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.2,
+              "downstream": 0.7,
+              "upstream": 0.5
+            },
+            "supply_down": {
+              "self": -1.2,
+              "downstream": -0.7,
+              "upstream": 0.3
+            }
+          },
+          "sensitivity": 1.2,
+          "bottleneck_weight": 1.4
+        },
+        "sensor": {
+          "name": "传感器",
+          "companies": [
+            "ROK",
+            "EMR"
+          ],
+          "supplier_count": 5,
+          "bottleneck": false,
+          "keywords": [
+            "传感器",
+            "工业传感器",
+            "ROK",
+            "EMR"
+          ],
+          "upstream": [],
+          "downstream": [
+            "robot",
+            "heavy_mach"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.2,
+              "downstream": 0.8,
+              "upstream": 0.6
+            },
+            "supply_down": {
+              "self": -1.2,
+              "downstream": -0.8,
+              "upstream": 0.3
+            }
+          },
+          "sensitivity": 1.2,
+          "bottleneck_weight": 1.0
+        },
+        "factory_automation": {
+          "name": "工厂自动化",
+          "companies": [
+            "ROK",
+            "EMR"
+          ],
+          "supplier_count": 5,
+          "bottleneck": false,
+          "keywords": [
+            "工厂自动化",
+            "PLC",
+            "ROK"
+          ],
+          "upstream": [
+            "robot",
+            "sensors"
+          ],
+          "downstream": [],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.3,
+              "upstream": 0.7,
+              "downstream": 0.6
+            },
+            "supply_down": {
+              "self": -1.3,
+              "upstream": -0.6,
+              "downstream": -0.4
+            }
+          },
+          "sensitivity": 1.1,
+          "bottleneck_weight": 1.0
+        },
+        "sensors": {
+          "name": "传感器/执行器",
+          "companies": [
+            "ADI",
+            "TXN",
+            "NXPI"
+          ],
+          "supplier_count": 6,
+          "bottleneck": false,
+          "keywords": [
+            "传感器",
+            "执行器",
+            "芯片",
+            "ADI"
+          ],
+          "upstream": [],
+          "downstream": [
+            "robot",
+            "factory_automation"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.4,
+              "upstream": 0.7,
+              "downstream": 0.6
+            },
+            "supply_down": {
+              "self": -1.4,
+              "upstream": -0.6,
+              "downstream": -0.5
+            }
+          },
+          "sensitivity": 1.2,
+          "bottleneck_weight": 1.2
+        },
+        "logistics_automation": {
+          "name": "物流自动化",
+          "companies": [
+            "OSTK",
+            "ZBRA"
+          ],
+          "supplier_count": 5,
+          "bottleneck": false,
+          "keywords": [
+            "物流",
+            "自动化仓库",
+            "分拣",
+            "ZBRA"
+          ],
+          "upstream": [
+            "robot"
+          ],
+          "downstream": [],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.1,
+              "upstream": 0.5,
+              "downstream": 0.5
+            },
+            "supply_down": {
+              "self": -1.1,
+              "upstream": -0.5,
+              "downstream": -0.4
+            }
+          },
+          "sensitivity": 0.9,
+          "bottleneck_weight": 1.0
+        }
+      },
+      "chain_type": "supply_chain"
+    },
+    "cyclical_resources": {
+      "name": "周期资源",
+      "market": "US",
+      "timeframe": "6个月",
+      "keywords": [
+        "周期",
+        "资源",
+        "矿",
+        "石油",
+        "天然气",
+        "铜",
+        "铝",
+        "钢铁"
+      ],
+      "chain_type": "sector",
+      "canary_stocks": [
+        "XOM",
+        "BHP",
+        "FCX"
+      ],
+      "nodes": {
+        "oil_gas": {
+          "name": "石油天然气",
+          "companies": [
+            "XOM",
+            "CVX",
+            "SHEL",
+            "COP"
+          ],
+          "supplier_count": 5,
+          "bottleneck": true,
+          "keywords": [
+            "石油",
+            "天然气",
+            "XOM",
+            "CVX",
+            "SHEL",
+            "COP"
+          ],
+          "upstream": [],
+          "downstream": [
+            "chemicals",
+            "industrial_products"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.4,
+              "downstream": 0.8,
+              "upstream": 0.6
+            },
+            "supply_down": {
+              "self": -1.4,
+              "downstream": -0.8,
+              "upstream": 0.3
+            }
+          },
+          "sensitivity": 1.4,
+          "bottleneck_weight": 1.3
+        },
+        "mining": {
+          "name": "矿业",
+          "companies": [
+            "BHP",
+            "RIO",
+            "FCX"
+          ],
+          "supplier_count": 5,
+          "bottleneck": true,
+          "keywords": [
+            "矿业",
+            "铜",
+            "铁",
+            "BHP",
+            "RIO",
+            "FCX"
+          ],
+          "upstream": [],
+          "downstream": [
+            "steel",
+            "industrial_products"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.4,
+              "downstream": 0.9,
+              "upstream": 0.7
+            },
+            "supply_down": {
+              "self": -1.4,
+              "downstream": -0.9,
+              "upstream": 0.3
+            }
+          },
+          "sensitivity": 1.4,
+          "bottleneck_weight": 1.4
+        },
+        "steel": {
+          "name": "钢铁",
+          "companies": [
+            "NUE",
+            "X",
+            "STLD"
+          ],
+          "supplier_count": 5,
+          "bottleneck": false,
+          "keywords": [
+            "钢铁",
+            "NUE",
+            "纽柯"
+          ],
+          "upstream": [
+            "mining"
+          ],
+          "downstream": [
+            "industrial_products"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.3,
+              "downstream": 0.6,
+              "upstream": 0.5
+            },
+            "supply_down": {
+              "self": -1.3,
+              "downstream": -0.6,
+              "upstream": 0.3
+            }
+          },
+          "sensitivity": 1.3,
+          "bottleneck_weight": 1.0
+        },
+        "chemicals": {
+          "name": "化工",
+          "companies": [
+            "DD",
+            "LYB",
+            "SHW"
+          ],
+          "supplier_count": 5,
+          "bottleneck": false,
+          "keywords": [
+            "化工",
+            "基础化工",
+            "化肥"
+          ],
+          "upstream": [
+            "oil_gas",
+            "steel"
+          ],
+          "downstream": [],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.2,
+              "downstream": 0.0,
+              "upstream": 0.6
+            },
+            "supply_down": {
+              "self": -1.2,
+              "downstream": 0.0,
+              "upstream": 0.3
+            }
+          },
+          "sensitivity": 1.2,
+          "bottleneck_weight": 1.0
+        },
+        "industrial_products": {
+          "name": "工业成品",
+          "companies": [
+            "CAT",
+            "DE",
+            "GE"
+          ],
+          "supplier_count": 6,
+          "bottleneck": false,
+          "keywords": [
+            "工业设备",
+            "工程机械",
+            "CAT",
+            "DE"
+          ],
+          "upstream": [
+            "mining",
+            "steel",
+            "oil_gas"
+          ],
+          "downstream": [],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.1,
+              "upstream": 0.5,
+              "downstream": 0.5
+            },
+            "supply_down": {
+              "self": -1.1,
+              "upstream": -0.5,
+              "downstream": -0.4
+            }
+          },
+          "sensitivity": 0.9,
+          "bottleneck_weight": 1.0
+        }
+      }
+    },
+    "serenity_photonics": {
+      "name": "Serenity光子学瓶颈链",
+      "market": "US",
+      "timeframe": "2年",
+      "chain_type": "supply_chain",
+      "keywords": [
+        "InP",
+        "光子",
+        "CPO",
+        "硅光",
+        "光通信",
+        "photonics",
+        "optical"
+      ],
+      "canary_stocks": [
+        "AXTI",
+        "AAOI",
+        "TSEM"
+      ],
+      "nodes": {
+        "inp_substrate": {
+          "name": "InP衬底",
+          "companies": [
+            "AXTI"
+          ],
+          "supplier_count": 3,
+          "bottleneck": true,
+          "keywords": [
+            "InP",
+            "磷化铟",
+            "衬底",
+            "AXTI"
+          ],
+          "upstream": [],
+          "downstream": [
+            "siph_foundry"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.4,
+              "downstream": 1.2,
+              "upstream": 0.5
+            },
+            "supply_down": {
+              "self": -1.5,
+              "downstream": -1.3,
+              "upstream": 0.3
+            }
+          },
+          "sensitivity": 1.5,
+          "bottleneck_weight": 1.6
+        },
+        "soi_wafer": {
+          "name": "工程SOI",
+          "companies": [],
+          "supplier_count": 1,
+          "bottleneck": true,
+          "note": "Soitec法股",
+          "keywords": [
+            "SOI",
+            "工程SOI",
+            "Soitec"
+          ],
+          "upstream": [],
+          "downstream": [
+            "siph_foundry"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.3,
+              "downstream": 1.0,
+              "upstream": 0.4
+            },
+            "supply_down": {
+              "self": -1.4,
+              "downstream": -1.1,
+              "upstream": 0.3
+            }
+          },
+          "sensitivity": 1.4,
+          "bottleneck_weight": 1.5
+        },
+        "siph_foundry": {
+          "name": "硅光代工",
+          "companies": [
+            "TSEM",
+            "GFS"
+          ],
+          "supplier_count": 3,
+          "bottleneck": false,
+          "keywords": [
+            "硅光",
+            "代工",
+            "TSEM",
+            "GFS"
+          ],
+          "upstream": [
+            "inp_substrate",
+            "soi_wafer"
+          ],
+          "downstream": [
+            "laser_eml",
+            "optical_dsp"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.3,
+              "downstream": 1.0,
+              "upstream": 0.7
+            },
+            "supply_down": {
+              "self": -1.3,
+              "downstream": -1.0,
+              "upstream": 0.4
+            }
+          },
+          "sensitivity": 1.3,
+          "bottleneck_weight": 1.1
+        },
+        "laser_eml": {
+          "name": "EML激光器",
+          "companies": [
+            "LITE",
+            "COHR",
+            "AAOI"
+          ],
+          "supplier_count": 4,
+          "bottleneck": false,
+          "keywords": [
+            "EML",
+            "激光器",
+            "LITE",
+            "COHR",
+            "AAOI"
+          ],
+          "upstream": [
+            "siph_foundry"
+          ],
+          "downstream": [
+            "module_assembly"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.2,
+              "downstream": 0.9,
+              "upstream": 0.6
+            },
+            "supply_down": {
+              "self": -1.2,
+              "downstream": -0.9,
+              "upstream": 0.4
+            }
+          },
+          "sensitivity": 1.2,
+          "bottleneck_weight": 1.0
+        },
+        "optical_dsp": {
+          "name": "光DSP",
+          "companies": [
+            "MRVL",
+            "AVGO"
+          ],
+          "supplier_count": 2,
+          "bottleneck": true,
+          "keywords": [
+            "光DSP",
+            "DSP",
+            "MRVL",
+            "AVGO"
+          ],
+          "upstream": [
+            "siph_foundry"
+          ],
+          "downstream": [
+            "module_assembly"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.3,
+              "downstream": 0.8,
+              "upstream": 0.5
+            },
+            "supply_down": {
+              "self": -1.3,
+              "downstream": -0.8,
+              "upstream": 0.3
+            }
+          },
+          "sensitivity": 1.3,
+          "bottleneck_weight": 1.4
+        },
+        "test_wafer": {
+          "name": "晶圆测试",
+          "companies": [
+            "AEHR",
+            "ONTO"
+          ],
+          "supplier_count": 3,
+          "bottleneck": false,
+          "keywords": [
+            "晶圆测试",
+            "测试",
+            "AEHR",
+            "ONTO"
+          ],
+          "upstream": [
+            "siph_foundry"
+          ],
+          "downstream": [
+            "module_assembly"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.1,
+              "downstream": 0.6,
+              "upstream": 0.4
+            },
+            "supply_down": {
+              "self": -1.1,
+              "downstream": -0.6,
+              "upstream": 0.3
+            }
+          },
+          "sensitivity": 1.0,
+          "bottleneck_weight": 1.0
+        },
+        "module_assembly": {
+          "name": "光模块组装",
+          "companies": [
+            "FN"
+          ],
+          "supplier_count": 5,
+          "bottleneck": false,
+          "keywords": [
+            "光模块",
+            "组装",
+            "FN"
+          ],
+          "upstream": [
+            "laser_eml",
+            "optical_dsp",
+            "test_wafer"
+          ],
+          "downstream": [
+            "fiber_interconnect"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.2,
+              "downstream": 0.7,
+              "upstream": 0.6
+            },
+            "supply_down": {
+              "self": -1.2,
+              "downstream": -0.7,
+              "upstream": 0.3
+            }
+          },
+          "sensitivity": 1.1,
+          "bottleneck_weight": 1.0
+        },
+        "fiber_interconnect": {
+          "name": "光纤互联",
+          "companies": [
+            "GLW"
+          ],
+          "supplier_count": 3,
+          "bottleneck": false,
+          "keywords": [
+            "光纤",
+            "光缆",
+            "GLW",
+            "康宁"
+          ],
+          "upstream": [
+            "module_assembly"
+          ],
+          "downstream": [],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.1,
+              "downstream": 0.0,
+              "upstream": 0.5
+            },
+            "supply_down": {
+              "self": -1.1,
+              "downstream": 0.0,
+              "upstream": 0.3
+            }
+          },
+          "sensitivity": 1.0,
+          "bottleneck_weight": 1.0
+        }
+      }
+    },
+    "cn_ai_infra": {
+      "name": "AI算力基础设施（中国）",
+      "market": "CN",
+      "timeframe": "2年",
+      "chain_type": "supply_chain",
+      "keywords": [
+        "AI",
+        "算力",
+        "人工智能",
+        "昇腾",
+        "国产芯片",
+        "服务器",
+        "光模块",
+        "数据中心",
+        "海光",
+        "寒武纪"
+      ],
+      "canary_stocks": [
+        "688041",
+        "000977",
+        "300308"
+      ],
+      "nodes": {
+        "ai_chip_cn": {
+          "name": "AI芯片/GPU",
+          "companies": [
+            "688041",
+            "688256",
+            "002049",
+            "688525"
+          ],
+          "supplier_count": 4,
+          "bottleneck": true,
+          "keywords": [
+            "AI芯片",
+            "GPU",
+            "昇腾",
+            "海光信息",
+            "寒武纪",
+            "紫光国微",
+            "佰维存储"
+          ],
+          "upstream": [],
+          "downstream": [
+            "ai_server_cn"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.5,
+              "upstream": 0,
+              "downstream": 0.8
+            },
+            "supply_down": {
+              "self": -1.5,
+              "upstream": 0,
+              "downstream": -0.6
+            }
+          },
+          "sensitivity": 1.5,
+          "bottleneck_weight": 1.6
+        },
+        "ai_server_cn": {
+          "name": "AI服务器",
+          "companies": [
+            "000977",
+            "603019",
+            "000066"
+          ],
+          "supplier_count": 4,
+          "bottleneck": false,
+          "keywords": [
+            "AI服务器",
+            "服务器",
+            "浪潮信息",
+            "中科曙光",
+            "中国长城"
+          ],
+          "upstream": [
+            "ai_chip_cn"
+          ],
+          "downstream": [
+            "data_center_cn",
+            "optical_module_cn"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.3,
+              "upstream": 0.6,
+              "downstream": 0.6
+            },
+            "supply_down": {
+              "self": -1.2,
+              "upstream": -0.5,
+              "downstream": -0.4
+            }
+          },
+          "sensitivity": 1.3,
+          "bottleneck_weight": 1.2
+        },
+        "optical_module_cn": {
+          "name": "光模块/光通信",
+          "companies": [
+            "300308",
+            "300394",
+            "300502",
+            "688313"
+          ],
+          "supplier_count": 5,
+          "bottleneck": false,
+          "keywords": [
+            "光模块",
+            "光通信",
+            "CPO",
+            "中际旭创",
+            "天孚通信",
+            "新易盛",
+            "仕佳光子"
+          ],
+          "upstream": [
+            "ai_server_cn"
+          ],
+          "downstream": [
+            "data_center_cn"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.3,
+              "upstream": 0.4,
+              "downstream": 0.5
+            },
+            "supply_down": {
+              "self": -1.2,
+              "upstream": -0.3,
+              "downstream": -0.4
+            }
+          },
+          "sensitivity": 1.3,
+          "bottleneck_weight": 1.0
+        },
+        "data_center_cn": {
+          "name": "数据中心/云计算",
+          "companies": [
+            "600845",
+            "300383",
+            "300442",
+            "603881"
+          ],
+          "supplier_count": 5,
+          "bottleneck": false,
+          "keywords": [
+            "数据中心",
+            "IDC",
+            "云计算",
+            "宝信软件",
+            "光环新网",
+            "润泽科技",
+            "数据港"
+          ],
+          "upstream": [
+            "ai_server_cn",
+            "optical_module_cn"
+          ],
+          "downstream": [],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.1,
+              "upstream": 0.5,
+              "downstream": 0
+            },
+            "supply_down": {
+              "self": -1.0,
+              "upstream": -0.4,
+              "downstream": 0
+            }
+          },
+          "sensitivity": 1.1,
+          "bottleneck_weight": 1.0
+        }
+      }
+    },
+    "cn_nev": {
+      "name": "新能源汽车（中国）",
+      "market": "CN",
+      "timeframe": "2年",
+      "chain_type": "supply_chain",
+      "keywords": [
+        "新能源车",
+        "电动车",
+        "EV",
+        "锂电池",
+        "自动驾驶",
+        "充电",
+        "整车",
+        "比亚迪"
+      ],
+      "canary_stocks": [
+        "002594",
+        "300750",
+        "601127"
+      ],
+      "nodes": {
+        "lithium_mine": {
+          "name": "锂矿/盐湖",
+          "companies": [
+            "002460",
+            "002466",
+            "000792"
+          ],
+          "supplier_count": 3,
+          "bottleneck": true,
+          "bottleneck_weight": 1.5,
+          "node_type": "main",
+          "keywords": [
+            "锂矿",
+            "盐湖提锂",
+            "赣锋锂业",
+            "天齐锂业",
+            "盐湖股份"
+          ],
+          "upstream": [],
+          "downstream": [
+            "lithium_salt"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.4,
+              "upstream": 0,
+              "downstream": 0.7
+            },
+            "supply_down": {
+              "self": -1.4,
+              "upstream": 0,
+              "downstream": -0.6
+            }
+          },
+          "sensitivity": 1.4
+        },
+        "lithium_salt": {
+          "name": "锂盐/前驱体",
+          "companies": [
+            "002460",
+            "002466",
+            "300073"
+          ],
+          "supplier_count": 3,
+          "bottleneck": true,
+          "bottleneck_weight": 1.3,
+          "node_type": "main",
+          "keywords": [
+            "锂盐",
+            "碳酸锂",
+            "氢氧化锂",
+            "前驱体",
+            "当升科技"
+          ],
+          "upstream": [
+            "lithium_mine"
+          ],
+          "downstream": [
+            "battery_material"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.3,
+              "upstream": 0.5,
+              "downstream": 0.6
+            },
+            "supply_down": {
+              "self": -1.3,
+              "upstream": -0.4,
+              "downstream": -0.5
+            }
+          },
+          "sensitivity": 1.3
+        },
+        "battery_material": {
+          "name": "正极/负极/电解液/隔膜",
+          "companies": [
+            "002709",
+            "002812",
+            "300073",
+            "600516",
+            "002850"
+          ],
+          "supplier_count": 3,
+          "bottleneck": false,
+          "bottleneck_weight": 1.0,
+          "node_type": "main",
+          "keywords": [
+            "正极",
+            "负极",
+            "电解液",
+            "隔膜",
+            "天赐材料",
+            "恩捷股份",
+            "华友钴业"
+          ],
+          "upstream": [
+            "lithium_salt"
+          ],
+          "downstream": [
+            "cathode_mat",
+            "anode_mat",
+            "electrolyte_mat",
+            "separator_mat",
+            "ev_battery"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.3,
+              "upstream": 0.4,
+              "downstream": 0.6
+            },
+            "supply_down": {
+              "self": -1.2,
+              "upstream": -0.3,
+              "downstream": -0.5
+            }
+          },
+          "sensitivity": 1.3
+        },
+        "ev_battery": {
+          "name": "动力电池",
+          "companies": [
+            "300750",
+            "300014",
+            "002074",
+            "300438"
+          ],
+          "supplier_count": 3,
+          "bottleneck": true,
+          "bottleneck_weight": 1.5,
+          "node_type": "main",
+          "keywords": [
+            "动力电池",
+            "锂电池",
+            "宁德时代",
+            "亿纬锂能",
+            "国轩高科",
+            "鹏辉能源"
+          ],
+          "upstream": [
+            "battery_material"
+          ],
+          "downstream": [
+            "ev_battery_prismatic",
+            "ev_battery_pouch",
+            "ev_battery_cylin",
+            "ev_whole_cn"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.5,
+              "upstream": 0.6,
+              "downstream": 0.6
+            },
+            "supply_down": {
+              "self": -1.5,
+              "upstream": -0.5,
+              "downstream": -0.5
+            }
+          },
+          "sensitivity": 1.5
+        },
+        "ev_whole_cn": {
+          "name": "整车制造",
+          "companies": [
+            "002594",
+            "601127",
+            "600733",
+            "000625",
+            "600104",
+            "601238",
+            "601633"
+          ],
+          "supplier_count": 3,
+          "bottleneck": false,
+          "bottleneck_weight": 1.0,
+          "node_type": "main",
+          "keywords": [
+            "整车",
+            "新能源车",
+            "比亚迪",
+            "赛力斯",
+            "长安",
+            "上汽",
+            "长城"
+          ],
+          "upstream": [
+            "ev_battery"
+          ],
+          "downstream": [
+            "ev_passenger_car",
+            "ev_commercial",
+            "charging_cn"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.4,
+              "upstream": 0.5,
+              "downstream": 0.4
+            },
+            "supply_down": {
+              "self": -1.3,
+              "upstream": -0.4,
+              "downstream": -0.3
+            }
+          },
+          "sensitivity": 1.4
+        },
+        "ev_chip_cn": {
+          "name": "车规芯片/智驾",
+          "companies": [
+            "603501",
+            "688167",
+            "002920"
+          ],
+          "supplier_count": 3,
+          "bottleneck": true,
+          "bottleneck_weight": 1.3,
+          "node_type": "main",
+          "keywords": [
+            "车规芯片",
+            "自动驾驶",
+            "智能驾驶",
+            "韦尔股份",
+            "寒武纪",
+            "德赛西威"
+          ],
+          "upstream": [],
+          "downstream": [
+            "ev_whole_cn"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.2,
+              "upstream": 0,
+              "downstream": 0.5
+            },
+            "supply_down": {
+              "self": -1.2,
+              "upstream": 0,
+              "downstream": -0.4
+            }
+          },
+          "sensitivity": 1.2
+        },
+        "charging_cn": {
+          "name": "充电/换电设施",
+          "companies": [
+            "300001",
+            "002276",
+            "300693"
+          ],
+          "supplier_count": 3,
+          "bottleneck": false,
+          "bottleneck_weight": 1.0,
+          "node_type": "main",
+          "keywords": [
+            "充电",
+            "换电",
+            "充电桩",
+            "特锐德",
+            "万马股份",
+            "盛弘股份"
+          ],
+          "upstream": [
+            "ev_whole_cn"
+          ],
+          "downstream": [],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.0,
+              "upstream": 0.4,
+              "downstream": 0
+            },
+            "supply_down": {
+              "self": -0.9,
+              "upstream": -0.3,
+              "downstream": 0
+            }
+          },
+          "sensitivity": 1.0
+        },
+        "cathode_mat": {
+          "name": "正极材料",
+          "companies": [
+            "300073",
+            "300750"
+          ],
+          "supplier_count": 3,
+          "bottleneck": false,
+          "bottleneck_weight": 1.0,
+          "node_type": "branch",
+          "keywords": [
+            "正极",
+            "三元",
+            "LFP",
+            "磷酸铁锂",
+            "当升科技",
+            "宁德时代"
+          ],
+          "upstream": [
+            "battery_material"
+          ],
+          "downstream": [
+            "ev_battery"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.0,
+              "upstream": 0,
+              "downstream": 0
+            },
+            "supply_down": {
+              "self": -1.0,
+              "upstream": 0,
+              "downstream": 0
+            }
+          },
+          "sensitivity": 1.2
+        },
+        "anode_mat": {
+          "name": "负极材料",
+          "companies": [
+            "600516",
+            "001301"
+          ],
+          "supplier_count": 3,
+          "bottleneck": false,
+          "bottleneck_weight": 1.0,
+          "node_type": "branch",
+          "keywords": [
+            "负极",
+            "石墨",
+            "硅碳",
+            "尚太科技"
+          ],
+          "upstream": [
+            "battery_material"
+          ],
+          "downstream": [
+            "ev_battery"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.0,
+              "upstream": 0,
+              "downstream": 0
+            },
+            "supply_down": {
+              "self": -1.0,
+              "upstream": 0,
+              "downstream": 0
+            }
+          },
+          "sensitivity": 1.1
+        },
+        "electrolyte_mat": {
+          "name": "电解液",
+          "companies": [
+            "002709",
+            "300037"
+          ],
+          "supplier_count": 3,
+          "bottleneck": false,
+          "bottleneck_weight": 1.0,
+          "node_type": "branch",
+          "keywords": [
+            "电解液",
+            "六氟磷酸锂",
+            "天赐材料",
+            "新宙邦"
+          ],
+          "upstream": [
+            "battery_material"
+          ],
+          "downstream": [
+            "ev_battery"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.0,
+              "upstream": 0,
+              "downstream": 0
+            },
+            "supply_down": {
+              "self": -1.0,
+              "upstream": 0,
+              "downstream": 0
+            }
+          },
+          "sensitivity": 1.1
+        },
+        "separator_mat": {
+          "name": "隔膜",
+          "companies": [
+            "002812",
+            "300568"
+          ],
+          "supplier_count": 3,
+          "bottleneck": false,
+          "bottleneck_weight": 1.0,
+          "node_type": "branch",
+          "keywords": [
+            "隔膜",
+            "湿法",
+            "干法",
+            "恩捷股份",
+            "星源材质"
+          ],
+          "upstream": [
+            "battery_material"
+          ],
+          "downstream": [
+            "ev_battery"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.0,
+              "upstream": 0,
+              "downstream": 0
+            },
+            "supply_down": {
+              "self": -1.0,
+              "upstream": 0,
+              "downstream": 0
+            }
+          },
+          "sensitivity": 1.1
+        },
+        "ev_battery_prismatic": {
+          "name": "方形电池",
+          "companies": [
+            "300750"
+          ],
+          "supplier_count": 3,
+          "bottleneck": false,
+          "bottleneck_weight": 1.0,
+          "node_type": "branch",
+          "keywords": [
+            "方形电池",
+            "宁德时代"
+          ],
+          "upstream": [
+            "ev_battery"
+          ],
+          "downstream": [
+            "ev_whole_cn"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.0,
+              "upstream": 0,
+              "downstream": 0
+            },
+            "supply_down": {
+              "self": -1.0,
+              "upstream": 0,
+              "downstream": 0
+            }
+          },
+          "sensitivity": 1.0
+        },
+        "ev_battery_pouch": {
+          "name": "软包电池",
+          "companies": [
+            "300014"
+          ],
+          "supplier_count": 3,
+          "bottleneck": false,
+          "bottleneck_weight": 1.0,
+          "node_type": "branch",
+          "keywords": [
+            "软包电池",
+            "亿纬锂能"
+          ],
+          "upstream": [
+            "ev_battery"
+          ],
+          "downstream": [
+            "ev_whole_cn"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.0,
+              "upstream": 0,
+              "downstream": 0
+            },
+            "supply_down": {
+              "self": -1.0,
+              "upstream": 0,
+              "downstream": 0
+            }
+          },
+          "sensitivity": 1.0
+        },
+        "ev_battery_cylin": {
+          "name": "圆柱电池",
+          "companies": [
+            "300438"
+          ],
+          "supplier_count": 3,
+          "bottleneck": false,
+          "bottleneck_weight": 1.0,
+          "node_type": "branch",
+          "keywords": [
+            "圆柱电池",
+            "4680",
+            "鹏辉能源"
+          ],
+          "upstream": [
+            "ev_battery"
+          ],
+          "downstream": [
+            "ev_whole_cn"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.0,
+              "upstream": 0,
+              "downstream": 0
+            },
+            "supply_down": {
+              "self": -1.0,
+              "upstream": 0,
+              "downstream": 0
+            }
+          },
+          "sensitivity": 1.0
+        },
+        "ev_passenger_car": {
+          "name": "乘用车",
+          "companies": [
+            "002594",
+            "601127",
+            "600733"
+          ],
+          "supplier_count": 3,
+          "bottleneck": false,
+          "bottleneck_weight": 1.0,
+          "node_type": "branch",
+          "keywords": [
+            "乘用车",
+            "轿车",
+            "SUV",
+            "比亚迪",
+            "赛力斯"
+          ],
+          "upstream": [
+            "ev_whole_cn"
+          ],
+          "downstream": [
+            "charging_cn"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.0,
+              "upstream": 0,
+              "downstream": 0
+            },
+            "supply_down": {
+              "self": -1.0,
+              "upstream": 0,
+              "downstream": 0
+            }
+          },
+          "sensitivity": 1.2
+        },
+        "ev_commercial": {
+          "name": "商用车",
+          "companies": [
+            "600104",
+            "000957"
+          ],
+          "supplier_count": 3,
+          "bottleneck": false,
+          "bottleneck_weight": 1.0,
+          "node_type": "branch",
+          "keywords": [
+            "商用车",
+            "客车",
+            "卡车",
+            "上汽",
+            "中通客车"
+          ],
+          "upstream": [
+            "ev_whole_cn"
+          ],
+          "downstream": [
+            "charging_cn"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.0,
+              "upstream": 0,
+              "downstream": 0
+            },
+            "supply_down": {
+              "self": -1.0,
+              "upstream": 0,
+              "downstream": 0
+            }
+          },
+          "sensitivity": 1.0
+        },
+        "battery_equip": {
+          "name": "锂电设备",
+          "companies": [
+            "300457",
+            "300450",
+            "688006"
+          ],
+          "supplier_count": 3,
+          "bottleneck": true,
+          "bottleneck_weight": 1.3,
+          "node_type": "support",
+          "keywords": [
+            "锂电设备",
+            "涂布机",
+            "卷绕机",
+            "先导智能",
+            "先惠技术",
+            "杭可科技"
+          ],
+          "upstream": [],
+          "downstream": [
+            "ev_battery"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.1,
+              "upstream": 0,
+              "downstream": 0.5
+            },
+            "supply_down": {
+              "self": -1.0,
+              "upstream": 0,
+              "downstream": -0.3
+            }
+          },
+          "sensitivity": 1.2
+        },
+        "bms_system": {
+          "name": "电池管理BMS",
+          "companies": [
+            "300750",
+            "002074"
+          ],
+          "supplier_count": 3,
+          "bottleneck": false,
+          "bottleneck_weight": 1.0,
+          "node_type": "support",
+          "keywords": [
+            "BMS",
+            "电池管理",
+            "宁德时代",
+            "国轩高科"
+          ],
+          "upstream": [],
+          "downstream": [
+            "ev_battery",
+            "ev_whole_cn"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.0,
+              "upstream": 0,
+              "downstream": 0
+            },
+            "supply_down": {
+              "self": -1.0,
+              "upstream": 0,
+              "downstream": 0
+            }
+          },
+          "sensitivity": 1.1
+        },
+        "motor_control": {
+          "name": "电机电控",
+          "companies": [
+            "002249",
+            "300124",
+            "603728"
+          ],
+          "supplier_count": 3,
+          "bottleneck": false,
+          "bottleneck_weight": 1.0,
+          "node_type": "support",
+          "keywords": [
+            "电机",
+            "电控",
+            "驱动电机",
+            "汇川技术",
+            "大洋电机"
+          ],
+          "upstream": [],
+          "downstream": [
+            "ev_whole_cn"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.0,
+              "upstream": 0,
+              "downstream": 0
+            },
+            "supply_down": {
+              "self": -1.0,
+              "upstream": 0,
+              "downstream": 0
+            }
+          },
+          "sensitivity": 1.0
+        },
+        "thermal_mgmt": {
+          "name": "热管理",
+          "companies": [
+            "300014",
+            "600741"
+          ],
+          "supplier_count": 3,
+          "bottleneck": false,
+          "bottleneck_weight": 1.0,
+          "node_type": "support",
+          "keywords": [
+            "热管理",
+            "散热",
+            "液冷",
+            "亿纬锂能",
+            "华域汽车"
+          ],
+          "upstream": [],
+          "downstream": [
+            "ev_whole_cn"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.0,
+              "upstream": 0,
+              "downstream": 0
+            },
+            "supply_down": {
+              "self": -1.0,
+              "upstream": 0,
+              "downstream": 0
+            }
+          },
+          "sensitivity": 0.9
+        },
+        "lightweight": {
+          "name": "轻量化",
+          "companies": [
+            "600741",
+            "600699"
+          ],
+          "supplier_count": 3,
+          "bottleneck": false,
+          "bottleneck_weight": 1.0,
+          "node_type": "support",
+          "keywords": [
+            "轻量化",
+            "铝材",
+            "碳纤维",
+            "华域汽车",
+            "均胜电子"
+          ],
+          "upstream": [],
+          "downstream": [
+            "ev_whole_cn"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.0,
+              "upstream": 0,
+              "downstream": 0
+            },
+            "supply_down": {
+              "self": -1.0,
+              "upstream": 0,
+              "downstream": 0
+            }
+          },
+          "sensitivity": 0.9
+        }
+      }
+    },
+    "cn_solar": {
+      "name": "光伏（中国）",
+      "market": "CN",
+      "timeframe": "2年",
+      "chain_type": "supply_chain",
+      "keywords": [
+        "光伏",
+        "太阳能",
+        "硅片",
+        "组件",
+        "逆变器",
+        "TOPCon",
+        "HJT",
+        "钙钛矿",
+        "BIPV"
+      ],
+      "canary_stocks": [
+        "601012",
+        "600438",
+        "300274"
+      ],
+      "nodes": {
+        "polysilicon": {
+          "name": "多晶硅",
+          "companies": [
+            "600438",
+            "688303",
+            "600089"
+          ],
+          "supplier_count": 3,
+          "bottleneck": true,
+          "bottleneck_weight": 1.6,
+          "node_type": "main",
+          "keywords": [
+            "硅料",
+            "多晶硅",
+            "通威",
+            "大全能源",
+            "特变电工"
+          ],
+          "upstream": [],
+          "downstream": [
+            "silicon_wafer_cn"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.4,
+              "upstream": 0,
+              "downstream": 0.7
+            },
+            "supply_down": {
+              "self": -1.4,
+              "upstream": 0,
+              "downstream": -0.6
+            }
+          },
+          "sensitivity": 1.4
+        },
+        "silicon_wafer_cn": {
+          "name": "硅片",
+          "companies": [
+            "601012",
+            "688599",
+            "600732"
+          ],
+          "supplier_count": 3,
+          "bottleneck": true,
+          "bottleneck_weight": 1.4,
+          "node_type": "main",
+          "keywords": [
+            "硅片",
+            "单晶硅",
+            "隆基",
+            "天合",
+            "爱旭"
+          ],
+          "upstream": [
+            "polysilicon"
+          ],
+          "downstream": [
+            "solar_cell"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.3,
+              "upstream": 0.6,
+              "downstream": 0.6
+            },
+            "supply_down": {
+              "self": -1.3,
+              "upstream": -0.5,
+              "downstream": -0.5
+            }
+          },
+          "sensitivity": 1.3
+        },
+        "solar_cell": {
+          "name": "电池片",
+          "companies": [
+            "688599",
+            "600732",
+            "688223"
+          ],
+          "supplier_count": 3,
+          "bottleneck": false,
+          "bottleneck_weight": 1.0,
+          "node_type": "main",
+          "keywords": [
+            "电池片",
+            "PERC",
+            "TOPCon",
+            "HJT",
+            "天合",
+            "爱旭",
+            "晶科"
+          ],
+          "upstream": [
+            "silicon_wafer_cn"
+          ],
+          "downstream": [
+            "solar_cell_perc",
+            "solar_cell_topcon",
+            "solar_cell_hjt",
+            "solar_module"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.2,
+              "upstream": 0.5,
+              "downstream": 0.5
+            },
+            "supply_down": {
+              "self": -1.1,
+              "upstream": -0.4,
+              "downstream": -0.4
+            }
+          },
+          "sensitivity": 1.2
+        },
+        "solar_module": {
+          "name": "组件",
+          "companies": [
+            "601012",
+            "688599",
+            "688223"
+          ],
+          "supplier_count": 3,
+          "bottleneck": false,
+          "bottleneck_weight": 1.0,
+          "node_type": "main",
+          "keywords": [
+            "组件",
+            "光伏组件",
+            "隆基",
+            "天合",
+            "晶科"
+          ],
+          "upstream": [
+            "solar_cell"
+          ],
+          "downstream": [
+            "solar_module_double",
+            "solar_module_bipv",
+            "inverter_cn"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.1,
+              "upstream": 0.5,
+              "downstream": 0.4
+            },
+            "supply_down": {
+              "self": -1.0,
+              "upstream": -0.4,
+              "downstream": -0.3
+            }
+          },
+          "sensitivity": 1.1
+        },
+        "inverter_cn": {
+          "name": "逆变器",
+          "companies": [
+            "300274",
+            "688390",
+            "002518",
+            "300763",
+            "688348"
+          ],
+          "supplier_count": 3,
+          "bottleneck": false,
+          "bottleneck_weight": 1.0,
+          "node_type": "main",
+          "keywords": [
+            "逆变器",
+            "储能",
+            "阳光电源",
+            "固德威",
+            "科士达",
+            "锦浪科技"
+          ],
+          "upstream": [
+            "solar_module"
+          ],
+          "downstream": [
+            "solar_power_plant"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.2,
+              "upstream": 0.4,
+              "downstream": 0
+            },
+            "supply_down": {
+              "self": -1.1,
+              "upstream": -0.3,
+              "downstream": 0
+            }
+          },
+          "sensitivity": 1.2
+        },
+        "solar_power_plant": {
+          "name": "电站运营",
+          "companies": [
+            "600886",
+            "601985",
+            "600900"
+          ],
+          "supplier_count": 3,
+          "bottleneck": false,
+          "bottleneck_weight": 1.0,
+          "node_type": "main",
+          "keywords": [
+            "电站",
+            "光伏电站",
+            "国投电力",
+            "中国核电",
+            "长江电力"
+          ],
+          "upstream": [
+            "inverter_cn"
+          ],
+          "downstream": [],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.0,
+              "upstream": 0.3,
+              "downstream": 0
+            },
+            "supply_down": {
+              "self": -0.9,
+              "upstream": -0.3,
+              "downstream": 0
+            }
+          },
+          "sensitivity": 1.0
+        },
+        "solar_cell_perc": {
+          "name": "PERC电池",
+          "companies": [
+            "600732"
+          ],
+          "supplier_count": 3,
+          "bottleneck": false,
+          "bottleneck_weight": 1.0,
+          "node_type": "branch",
+          "keywords": [
+            "PERC",
+            "钝化发射极",
+            "爱旭"
+          ],
+          "upstream": [
+            "solar_cell"
+          ],
+          "downstream": [
+            "solar_module"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 0.9,
+              "upstream": 0.3,
+              "downstream": 0.3
+            },
+            "supply_down": {
+              "self": -0.8,
+              "upstream": -0.2,
+              "downstream": -0.2
+            }
+          },
+          "sensitivity": 1.1
+        },
+        "solar_cell_topcon": {
+          "name": "TOPCon电池",
+          "companies": [
+            "688599"
+          ],
+          "supplier_count": 3,
+          "bottleneck": false,
+          "bottleneck_weight": 1.0,
+          "node_type": "branch",
+          "keywords": [
+            "TOPCon",
+            "隧穿氧化层",
+            "天合"
+          ],
+          "upstream": [
+            "solar_cell"
+          ],
+          "downstream": [
+            "solar_module"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.0,
+              "upstream": 0.3,
+              "downstream": 0.3
+            },
+            "supply_down": {
+              "self": -0.9,
+              "upstream": -0.2,
+              "downstream": -0.2
+            }
+          },
+          "sensitivity": 1.2
+        },
+        "solar_cell_hjt": {
+          "name": "HJT异质结",
+          "companies": [
+            "688223"
+          ],
+          "supplier_count": 3,
+          "bottleneck": true,
+          "bottleneck_weight": 1.3,
+          "node_type": "branch",
+          "keywords": [
+            "HJT",
+            "异质结",
+            "晶科能源"
+          ],
+          "upstream": [
+            "solar_cell"
+          ],
+          "downstream": [
+            "solar_module"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.1,
+              "upstream": 0.4,
+              "downstream": 0.4
+            },
+            "supply_down": {
+              "self": -1.0,
+              "upstream": -0.3,
+              "downstream": -0.3
+            }
+          },
+          "sensitivity": 1.3
+        },
+        "solar_module_double": {
+          "name": "双玻组件",
+          "companies": [
+            "601012",
+            "688599"
+          ],
+          "supplier_count": 3,
+          "bottleneck": false,
+          "bottleneck_weight": 1.0,
+          "node_type": "branch",
+          "keywords": [
+            "双玻",
+            "双面发电",
+            "隆基"
+          ],
+          "upstream": [
+            "solar_module"
+          ],
+          "downstream": [
+            "inverter_cn"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 0.9,
+              "upstream": 0.3,
+              "downstream": 0
+            },
+            "supply_down": {
+              "self": -0.8,
+              "upstream": -0.2,
+              "downstream": 0
+            }
+          },
+          "sensitivity": 1.0
+        },
+        "solar_module_bipv": {
+          "name": "BIPV建材",
+          "companies": [
+            "601012"
+          ],
+          "supplier_count": 3,
+          "bottleneck": false,
+          "bottleneck_weight": 1.0,
+          "node_type": "branch",
+          "keywords": [
+            "BIPV",
+            "光伏建筑",
+            "隆基"
+          ],
+          "upstream": [
+            "solar_module"
+          ],
+          "downstream": [
+            "inverter_cn"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 0.9,
+              "upstream": 0.3,
+              "downstream": 0
+            },
+            "supply_down": {
+              "self": -0.8,
+              "upstream": -0.2,
+              "downstream": 0
+            }
+          },
+          "sensitivity": 1.1
+        },
+        "solar_equip": {
+          "name": "光伏设备",
+          "companies": [
+            "300724",
+            "603185",
+            "300751"
+          ],
+          "supplier_count": 3,
+          "bottleneck": true,
+          "bottleneck_weight": 1.3,
+          "node_type": "support",
+          "keywords": [
+            "光伏设备",
+            "单晶炉",
+            "切片机",
+            "捷佳伟创",
+            "上机数控",
+            "迈为股份"
+          ],
+          "upstream": [],
+          "downstream": [
+            "polysilicon",
+            "silicon_wafer_cn",
+            "solar_cell",
+            "solar_module"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.1,
+              "upstream": 0,
+              "downstream": 0.6
+            },
+            "supply_down": {
+              "self": -1.0,
+              "upstream": 0,
+              "downstream": -0.3
+            }
+          },
+          "sensitivity": 1.2
+        },
+        "solar_glass": {
+          "name": "光伏玻璃",
+          "companies": [
+            "601865",
+            "600586"
+          ],
+          "supplier_count": 3,
+          "bottleneck": true,
+          "bottleneck_weight": 1.4,
+          "node_type": "support",
+          "keywords": [
+            "光伏玻璃",
+            "福莱特",
+            "金晶科技"
+          ],
+          "upstream": [],
+          "downstream": [
+            "solar_module"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.2,
+              "upstream": 0,
+              "downstream": 0.5
+            },
+            "supply_down": {
+              "self": -1.2,
+              "upstream": 0,
+              "downstream": -0.4
+            }
+          },
+          "sensitivity": 1.2
+        },
+        "solar_encapsulant": {
+          "name": "胶膜/背板",
+          "companies": [
+            "603806",
+            "002129"
+          ],
+          "supplier_count": 3,
+          "bottleneck": false,
+          "bottleneck_weight": 1.0,
+          "node_type": "support",
+          "keywords": [
+            "EVA",
+            "POE",
+            "胶膜",
+            "背板",
+            "福斯特",
+            "中环股份"
+          ],
+          "upstream": [],
+          "downstream": [
+            "solar_module"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 0.9,
+              "upstream": 0,
+              "downstream": 0.4
+            },
+            "supply_down": {
+              "self": -0.8,
+              "upstream": 0,
+              "downstream": -0.3
+            }
+          },
+          "sensitivity": 1.0
+        },
+        "solar_ribbon": {
+          "name": "焊带/接线盒",
+          "companies": [
+            "300274"
+          ],
+          "supplier_count": 3,
+          "bottleneck": false,
+          "bottleneck_weight": 1.0,
+          "node_type": "support",
+          "keywords": [
+            "焊带",
+            "接线盒",
+            "互联条",
+            "阳光电源"
+          ],
+          "upstream": [],
+          "downstream": [
+            "solar_module"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 0.8,
+              "upstream": 0,
+              "downstream": 0.3
+            },
+            "supply_down": {
+              "self": -0.7,
+              "upstream": 0,
+              "downstream": -0.2
+            }
+          },
+          "sensitivity": 0.9
+        }
+      }
+    },
+    "cn_pharma": {
+      "name": "创新药/医药（中国）",
+      "market": "CN",
+      "timeframe": "2年",
+      "chain_type": "supply_chain",
+      "keywords": [
+        "医药",
+        "创新药",
+        "CXO",
+        "生物药",
+        "中药",
+        "医疗器械",
+        "恒瑞",
+        "药明"
+      ],
+      "canary_stocks": [
+        "600276",
+        "603259",
+        "300760"
+      ],
+      "nodes": {
+        "api_material": {
+          "name": "原料药/中间体",
+          "companies": [
+            "002001",
+            "300267",
+            "603259"
+          ],
+          "supplier_count": 3,
+          "bottleneck": true,
+          "bottleneck_weight": 1.3,
+          "node_type": "main",
+          "keywords": [
+            "原料药",
+            "中间体",
+            "API",
+            "新和成",
+            "尔康制药",
+            "药明康德"
+          ],
+          "upstream": [],
+          "downstream": [
+            "cxo_service",
+            "innovative_drug",
+            "tcm"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.2,
+              "upstream": 0,
+              "downstream": 0.6
+            },
+            "supply_down": {
+              "self": -1.1,
+              "upstream": 0,
+              "downstream": -0.5
+            }
+          },
+          "sensitivity": 1.2
+        },
+        "cxo_service": {
+          "name": "CXO/研发外包",
+          "companies": [
+            "603259",
+            "300347",
+            "300759",
+            "688202"
+          ],
+          "supplier_count": 3,
+          "bottleneck": true,
+          "bottleneck_weight": 1.4,
+          "node_type": "main",
+          "keywords": [
+            "CXO",
+            "CRO",
+            "CDMO",
+            "药明康德",
+            "泰格医药",
+            "康龙化成",
+            "美迪西"
+          ],
+          "upstream": [
+            "api_material"
+          ],
+          "downstream": [
+            "cxo_cro",
+            "cxo_cdmo",
+            "innovative_drug"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.3,
+              "upstream": 0.4,
+              "downstream": 0.8
+            },
+            "supply_down": {
+              "self": -1.2,
+              "upstream": -0.3,
+              "downstream": -0.6
+            }
+          },
+          "sensitivity": 1.3
+        },
+        "innovative_drug": {
+          "name": "创新药",
+          "companies": [
+            "600276",
+            "688235",
+            "300122",
+            "002422",
+            "002821",
+            "300558"
+          ],
+          "supplier_count": 3,
+          "bottleneck": true,
+          "bottleneck_weight": 1.4,
+          "node_type": "main",
+          "keywords": [
+            "创新药",
+            "生物药",
+            "恒瑞医药",
+            "百济神州",
+            "智飞生物",
+            "科伦药业",
+            "贝达药业"
+          ],
+          "upstream": [
+            "cxo_service",
+            "api_material"
+          ],
+          "downstream": [
+            "innovative_chem",
+            "innovative_bio",
+            "innovative_cgt",
+            "pharma_dist_cn"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.3,
+              "upstream": 0.5,
+              "downstream": 0.5
+            },
+            "supply_down": {
+              "self": -1.2,
+              "upstream": -0.4,
+              "downstream": -0.4
+            }
+          },
+          "sensitivity": 1.3
+        },
+        "tcm": {
+          "name": "中药/品牌中药",
+          "companies": [
+            "600436",
+            "600085",
+            "000538",
+            "000423"
+          ],
+          "supplier_count": 3,
+          "bottleneck": false,
+          "bottleneck_weight": 1.0,
+          "node_type": "main",
+          "keywords": [
+            "中药",
+            "品牌中药",
+            "片仔癀",
+            "同仁堂",
+            "云南白药",
+            "东阿阿胶"
+          ],
+          "upstream": [
+            "api_material"
+          ],
+          "downstream": [
+            "pharma_dist_cn"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.1,
+              "upstream": 0.3,
+              "downstream": 0.5
+            },
+            "supply_down": {
+              "self": -1.0,
+              "upstream": -0.3,
+              "downstream": -0.4
+            }
+          },
+          "sensitivity": 1.1
+        },
+        "med_device": {
+          "name": "医疗器械",
+          "companies": [
+            "300760",
+            "688271",
+            "300003",
+            "688029"
+          ],
+          "supplier_count": 3,
+          "bottleneck": false,
+          "bottleneck_weight": 1.0,
+          "node_type": "main",
+          "keywords": [
+            "医疗器械",
+            "医疗设备",
+            "迈瑞医疗",
+            "联影医疗",
+            "乐普医疗"
+          ],
+          "upstream": [],
+          "downstream": [
+            "med_device_equip",
+            "med_device_ivd",
+            "med_device_consum",
+            "pharma_dist_cn"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.2,
+              "upstream": 0,
+              "downstream": 0.5
+            },
+            "supply_down": {
+              "self": -1.1,
+              "upstream": 0,
+              "downstream": -0.4
+            }
+          },
+          "sensitivity": 1.2
+        },
+        "pharma_dist_cn": {
+          "name": "医药流通",
+          "companies": [
+            "600511",
+            "603883",
+            "000028",
+            "603233"
+          ],
+          "supplier_count": 3,
+          "bottleneck": false,
+          "bottleneck_weight": 1.0,
+          "node_type": "main",
+          "keywords": [
+            "医药流通",
+            "医药商业",
+            "国药股份",
+            "老百姓",
+            "国药一致"
+          ],
+          "upstream": [
+            "innovative_drug",
+            "tcm",
+            "med_device"
+          ],
+          "downstream": [],
+          "impact_profile": {
+            "demand_up": {
+              "self": 0.9,
+              "upstream": 0.5,
+              "downstream": 0
+            },
+            "supply_down": {
+              "self": -0.8,
+              "upstream": -0.4,
+              "downstream": 0
+            }
+          },
+          "sensitivity": 0.9
+        },
+        "cxo_cro": {
+          "name": "CRO(临床)",
+          "companies": [
+            "300347",
+            "300759",
+            "688202"
+          ],
+          "supplier_count": 3,
+          "bottleneck": false,
+          "bottleneck_weight": 1.0,
+          "node_type": "branch",
+          "keywords": [
+            "CRO",
+            "临床",
+            "泰格医药",
+            "康龙化成",
+            "美迪西"
+          ],
+          "upstream": [
+            "cxo_service"
+          ],
+          "downstream": [
+            "innovative_drug"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.0,
+              "upstream": 0,
+              "downstream": 0
+            },
+            "supply_down": {
+              "self": -1.0,
+              "upstream": 0,
+              "downstream": 0
+            }
+          },
+          "sensitivity": 1.2
+        },
+        "cxo_cdmo": {
+          "name": "CDMO(生产)",
+          "companies": [
+            "603259",
+            "002821",
+            "300122"
+          ],
+          "supplier_count": 3,
+          "bottleneck": true,
+          "bottleneck_weight": 1.3,
+          "node_type": "branch",
+          "keywords": [
+            "CDMO",
+            "定制生产",
+            "药明康德",
+            "凯莱英",
+            "智飞生物"
+          ],
+          "upstream": [
+            "cxo_service"
+          ],
+          "downstream": [
+            "innovative_drug"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.0,
+              "upstream": 0,
+              "downstream": 0
+            },
+            "supply_down": {
+              "self": -1.0,
+              "upstream": 0,
+              "downstream": 0
+            }
+          },
+          "sensitivity": 1.2
+        },
+        "innovative_chem": {
+          "name": "化学创新药",
+          "companies": [
+            "600276",
+            "002422"
+          ],
+          "supplier_count": 3,
+          "bottleneck": false,
+          "bottleneck_weight": 1.0,
+          "node_type": "branch",
+          "keywords": [
+            "化学药",
+            "小分子",
+            "恒瑞",
+            "科伦"
+          ],
+          "upstream": [
+            "innovative_drug"
+          ],
+          "downstream": [
+            "pharma_dist_cn"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.0,
+              "upstream": 0,
+              "downstream": 0
+            },
+            "supply_down": {
+              "self": -1.0,
+              "upstream": 0,
+              "downstream": 0
+            }
+          },
+          "sensitivity": 1.1
+        },
+        "innovative_bio": {
+          "name": "生物药(单抗/双抗)",
+          "companies": [
+            "688235",
+            "300122",
+            "300558"
+          ],
+          "supplier_count": 3,
+          "bottleneck": true,
+          "bottleneck_weight": 1.3,
+          "node_type": "branch",
+          "keywords": [
+            "单抗",
+            "双抗",
+            "ADC",
+            "百济神州",
+            "智飞生物",
+            "贝达药业"
+          ],
+          "upstream": [
+            "innovative_drug"
+          ],
+          "downstream": [
+            "pharma_dist_cn"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.0,
+              "upstream": 0,
+              "downstream": 0
+            },
+            "supply_down": {
+              "self": -1.0,
+              "upstream": 0,
+              "downstream": 0
+            }
+          },
+          "sensitivity": 1.3
+        },
+        "innovative_cgt": {
+          "name": "细胞/基因治疗",
+          "companies": [
+            "688235"
+          ],
+          "supplier_count": 3,
+          "bottleneck": true,
+          "bottleneck_weight": 1.5,
+          "node_type": "branch",
+          "keywords": [
+            "细胞治疗",
+            "CAR-T",
+            "基因治疗",
+            "百济神州"
+          ],
+          "upstream": [
+            "innovative_drug"
+          ],
+          "downstream": [
+            "pharma_dist_cn"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.0,
+              "upstream": 0,
+              "downstream": 0
+            },
+            "supply_down": {
+              "self": -1.0,
+              "upstream": 0,
+              "downstream": 0
+            }
+          },
+          "sensitivity": 1.4
+        },
+        "med_device_equip": {
+          "name": "高端设备(CT/MRI)",
+          "companies": [
+            "688271",
+            "300760"
+          ],
+          "supplier_count": 3,
+          "bottleneck": true,
+          "bottleneck_weight": 1.3,
+          "node_type": "branch",
+          "keywords": [
+            "CT",
+            "MRI",
+            "超声",
+            "联影医疗",
+            "迈瑞医疗"
+          ],
+          "upstream": [
+            "med_device"
+          ],
+          "downstream": [
+            "pharma_dist_cn"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.0,
+              "upstream": 0,
+              "downstream": 0
+            },
+            "supply_down": {
+              "self": -1.0,
+              "upstream": 0,
+              "downstream": 0
+            }
+          },
+          "sensitivity": 1.2
+        },
+        "med_device_ivd": {
+          "name": "体外诊断(IVD)",
+          "companies": [
+            "300760",
+            "603387",
+            "002030"
+          ],
+          "supplier_count": 3,
+          "bottleneck": false,
+          "bottleneck_weight": 1.0,
+          "node_type": "branch",
+          "keywords": [
+            "IVD",
+            "体外诊断",
+            "试剂",
+            "迈瑞医疗",
+            "达安基因"
+          ],
+          "upstream": [
+            "med_device"
+          ],
+          "downstream": [
+            "pharma_dist_cn"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.0,
+              "upstream": 0,
+              "downstream": 0
+            },
+            "supply_down": {
+              "self": -1.0,
+              "upstream": 0,
+              "downstream": 0
+            }
+          },
+          "sensitivity": 1.0
+        },
+        "med_device_consum": {
+          "name": "高值耗材",
+          "companies": [
+            "300003",
+            "688029",
+            "300760"
+          ],
+          "supplier_count": 3,
+          "bottleneck": false,
+          "bottleneck_weight": 1.0,
+          "node_type": "branch",
+          "keywords": [
+            "耗材",
+            "支架",
+            "球囊",
+            "乐普医疗",
+            "南微医学",
+            "迈瑞医疗"
+          ],
+          "upstream": [
+            "med_device"
+          ],
+          "downstream": [
+            "pharma_dist_cn"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.0,
+              "upstream": 0,
+              "downstream": 0
+            },
+            "supply_down": {
+              "self": -1.0,
+              "upstream": 0,
+              "downstream": 0
+            }
+          },
+          "sensitivity": 1.0
+        },
+        "pharma_equip": {
+          "name": "制药设备",
+          "companies": [
+            "300171",
+            "300396"
+          ],
+          "supplier_count": 3,
+          "bottleneck": false,
+          "bottleneck_weight": 1.0,
+          "node_type": "support",
+          "keywords": [
+            "制药设备",
+            "冻干机",
+            "东富龙",
+            "楚天科技"
+          ],
+          "upstream": [],
+          "downstream": [
+            "cxo_service",
+            "innovative_drug"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.0,
+              "upstream": 0,
+              "downstream": 0
+            },
+            "supply_down": {
+              "self": -1.0,
+              "upstream": 0,
+              "downstream": 0
+            }
+          },
+          "sensitivity": 0.9
+        },
+        "pharma_reagent": {
+          "name": "实验试剂/耗材",
+          "companies": [
+            "603259",
+            "300347"
+          ],
+          "supplier_count": 3,
+          "bottleneck": false,
+          "bottleneck_weight": 1.0,
+          "node_type": "support",
+          "keywords": [
+            "试剂",
+            "耗材",
+            "培养基",
+            "药明康德",
+            "泰格医药"
+          ],
+          "upstream": [],
+          "downstream": [
+            "cxo_service",
+            "innovative_drug"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.0,
+              "upstream": 0,
+              "downstream": 0
+            },
+            "supply_down": {
+              "self": -1.0,
+              "upstream": 0,
+              "downstream": 0
+            }
+          },
+          "sensitivity": 0.8
+        },
+        "pharma_package": {
+          "name": "医药包装",
+          "companies": [
+            "002812",
+            "600529"
+          ],
+          "supplier_count": 3,
+          "bottleneck": false,
+          "bottleneck_weight": 1.0,
+          "node_type": "support",
+          "keywords": [
+            "包装",
+            "药用玻璃",
+            "胶塞",
+            "恩捷股份",
+            "山东药玻"
+          ],
+          "upstream": [],
+          "downstream": [
+            "innovative_drug",
+            "tcm",
+            "pharma_dist_cn"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.0,
+              "upstream": 0,
+              "downstream": 0
+            },
+            "supply_down": {
+              "self": -1.0,
+              "upstream": 0,
+              "downstream": 0
+            }
+          },
+          "sensitivity": 0.8
+        },
+        "med_device_parts": {
+          "name": "器械零部件",
+          "companies": [
+            "300760"
+          ],
+          "supplier_count": 3,
+          "bottleneck": false,
+          "bottleneck_weight": 1.0,
+          "node_type": "support",
+          "keywords": [
+            "传感器",
+            "探头",
+            "线束",
+            "迈瑞"
+          ],
+          "upstream": [],
+          "downstream": [
+            "med_device"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.0,
+              "upstream": 0,
+              "downstream": 0
+            },
+            "supply_down": {
+              "self": -1.0,
+              "upstream": 0,
+              "downstream": 0
+            }
+          },
+          "sensitivity": 0.8
+        }
+      }
+    },
+    "cn_defense": {
+      "name": "军工（中国）",
+      "market": "CN",
+      "timeframe": "2年",
+      "chain_type": "supply_chain",
+      "keywords": [
+        "军工",
+        "国防",
+        "航天",
+        "航空",
+        "船舶",
+        "导弹",
+        "雷达",
+        "卫星"
+      ],
+      "canary_stocks": [
+        "600760",
+        "600893",
+        "600118"
+      ],
+      "nodes": {
+        "aviation_cn": {
+          "name": "航空装备",
+          "companies": [
+            "600760",
+            "600893",
+            "000768"
+          ],
+          "supplier_count": 4,
+          "bottleneck": true,
+          "keywords": [
+            "航空",
+            "战斗机",
+            "运输机",
+            "中航沈飞",
+            "航发动力",
+            "中航西飞"
+          ],
+          "upstream": [
+            "defense_electronics_cn"
+          ],
+          "downstream": [],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.3,
+              "upstream": 0.6,
+              "downstream": 0
+            },
+            "supply_down": {
+              "self": -1.3,
+              "upstream": -0.5,
+              "downstream": 0
+            }
+          },
+          "sensitivity": 1.3,
+          "bottleneck_weight": 1.5
+        },
+        "space_cn": {
+          "name": "航天/卫星",
+          "companies": [
+            "600118",
+            "600879",
+            "000901"
+          ],
+          "supplier_count": 4,
+          "bottleneck": false,
+          "keywords": [
+            "航天",
+            "卫星",
+            "火箭",
+            "中国卫星",
+            "航天电子",
+            "航天科技"
+          ],
+          "upstream": [
+            "defense_electronics_cn"
+          ],
+          "downstream": [],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.2,
+              "upstream": 0.6,
+              "downstream": 0
+            },
+            "supply_down": {
+              "self": -1.2,
+              "upstream": -0.5,
+              "downstream": 0
+            }
+          },
+          "sensitivity": 1.2,
+          "bottleneck_weight": 1.0
+        },
+        "shipbuilding_cn": {
+          "name": "船舶/海洋装备",
+          "companies": [
+            "600150",
+            "600685",
+            "600072"
+          ],
+          "supplier_count": 3,
+          "bottleneck": false,
+          "keywords": [
+            "船舶",
+            "造船",
+            "航母",
+            "中国船舶",
+            "中船防务",
+            "中船科技"
+          ],
+          "upstream": [
+            "defense_electronics_cn"
+          ],
+          "downstream": [],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.2,
+              "upstream": 0.6,
+              "downstream": 0
+            },
+            "supply_down": {
+              "self": -1.1,
+              "upstream": -0.5,
+              "downstream": 0
+            }
+          },
+          "sensitivity": 1.2,
+          "bottleneck_weight": 1.0
+        },
+        "defense_electronics_cn": {
+          "name": "军工电子/信息化",
+          "companies": [
+            "002179",
+            "600562",
+            "600391"
+          ],
+          "supplier_count": 4,
+          "bottleneck": true,
+          "keywords": [
+            "军工电子",
+            "雷达",
+            "电子对抗",
+            "中航光电",
+            "国睿科技",
+            "航发科技"
+          ],
+          "upstream": [],
+          "downstream": [
+            "aviation_cn",
+            "space_cn",
+            "shipbuilding_cn"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.1,
+              "upstream": 0,
+              "downstream": 0.7
+            },
+            "supply_down": {
+              "self": -1.0,
+              "upstream": 0,
+              "downstream": -0.5
+            }
+          },
+          "sensitivity": 1.1,
+          "bottleneck_weight": 1.4
+        }
+      }
+    },
+    "cn_food": {
+      "name": "食品饮料供应链（中国）",
+      "market": "CN",
+      "timeframe": "2年",
+      "chain_type": "supply_chain",
+      "keywords": [
+        "食品",
+        "饮料",
+        "乳业",
+        "调味品",
+        "农产品",
+        "预制菜",
+        "食品安全"
+      ],
+      "canary_stocks": [
+        "603288",
+        "600887",
+        "000895"
+      ],
+      "nodes": {
+        "food_raw": {
+          "name": "原材/农产品",
+          "companies": [
+            "600737",
+            "600298",
+            "002597",
+            "000930",
+            "600127",
+            "600598"
+          ],
+          "supplier_count": 11,
+          "bottleneck": false,
+          "keywords": [
+            "农产品",
+            "糖业",
+            "酵母",
+            "食品原料",
+            "中粮",
+            "安琪"
+          ],
+          "upstream": [],
+          "downstream": [
+            "food_manufacture"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 0.9,
+              "upstream": 0.5,
+              "downstream": 0.4
+            },
+            "supply_down": {
+              "self": -0.9,
+              "upstream": -0.5,
+              "downstream": -0.3
+            }
+          },
+          "sensitivity": 0.9,
+          "bottleneck_weight": 1.0
+        },
+        "food_manufacture": {
+          "name": "食品制造/品牌",
+          "companies": [
+            "603288",
+            "600887",
+            "000895",
+            "603345",
+            "600882",
+            "002714",
+            "002557",
+            "603043",
+            "600305",
+            "002507",
+            "603866",
+            "002216",
+            "600872"
+          ],
+          "supplier_count": 20,
+          "bottleneck": true,
+          "keywords": [
+            "食品制造",
+            "调味品",
+            "乳业",
+            "肉制品",
+            "海天",
+            "伊利",
+            "双汇"
+          ],
+          "upstream": [
+            "food_raw"
+          ],
+          "downstream": [
+            "food_pkg_logistics"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.3,
+              "upstream": 0.7,
+              "downstream": 0.5
+            },
+            "supply_down": {
+              "self": -1.3,
+              "upstream": -0.7,
+              "downstream": -0.4
+            }
+          },
+          "sensitivity": 1.3,
+          "bottleneck_weight": 1.3
+        },
+        "food_pkg_logistics": {
+          "name": "包装/物流",
+          "companies": [
+            "002701",
+            "002831",
+            "002352"
+          ],
+          "supplier_count": 8,
+          "bottleneck": false,
+          "keywords": [
+            "包装",
+            "物流",
+            "冷链",
+            "奥瑞金",
+            "顺丰",
+            "裕同科技"
+          ],
+          "upstream": [
+            "food_manufacture"
+          ],
+          "downstream": [
+            "food_retail"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.0,
+              "upstream": 0.5,
+              "downstream": 0.4
+            },
+            "supply_down": {
+              "self": -1.0,
+              "upstream": -0.5,
+              "downstream": -0.3
+            }
+          },
+          "sensitivity": 1.0,
+          "bottleneck_weight": 1.0
+        },
+        "food_retail": {
+          "name": "零售终端",
+          "companies": [
+            "601933",
+            "002024",
+            "002697",
+            "601888"
+          ],
+          "supplier_count": 7,
+          "bottleneck": false,
+          "keywords": [
+            "零售",
+            "超市",
+            "永辉",
+            "苏宁",
+            "红旗连锁"
+          ],
+          "upstream": [
+            "food_pkg_logistics"
+          ],
+          "downstream": [],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.1,
+              "upstream": 0.6,
+              "downstream": 0.4
+            },
+            "supply_down": {
+              "self": -1.1,
+              "upstream": -0.6,
+              "downstream": -0.3
+            }
+          },
+          "sensitivity": 1.1,
+          "bottleneck_weight": 1.0
+        }
+      }
+    },
+    "cn_baijiu": {
+      "name": "白酒供应链（中国）",
+      "market": "CN",
+      "timeframe": "2年",
+      "chain_type": "supply_chain",
+      "keywords": [
+        "白酒",
+        "茅台",
+        "五粮液",
+        "酿造",
+        "高端白酒",
+        "次高端白酒"
+      ],
+      "canary_stocks": [
+        "600519",
+        "000858",
+        "000568"
+      ],
+      "nodes": {
+        "baijiu_grain": {
+          "name": "粮食/酿造辅料",
+          "companies": [
+            "600598",
+            "600127",
+            "000061"
+          ],
+          "supplier_count": 4,
+          "bottleneck": false,
+          "keywords": [
+            "粮食",
+            "高粱",
+            "小麦",
+            "北大荒",
+            "金健米业"
+          ],
+          "upstream": [],
+          "downstream": [
+            "baijiu_brewery"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 0.8,
+              "upstream": 0.5,
+              "downstream": 0.4
+            },
+            "supply_down": {
+              "self": -0.8,
+              "upstream": -0.5,
+              "downstream": -0.3
+            }
+          },
+          "sensitivity": 0.8,
+          "bottleneck_weight": 1.0
+        },
+        "baijiu_brewery": {
+          "name": "白酒酿造",
+          "companies": [
+            "600519",
+            "000858",
+            "000568",
+            "600809",
+            "002304",
+            "000596",
+            "603369",
+            "603198",
+            "600779",
+            "600702",
+            "600197",
+            "000799",
+            "603919",
+            "600559",
+            "000860",
+            "603589",
+            "002646",
+            "600199"
+          ],
+          "supplier_count": 31,
+          "bottleneck": true,
+          "keywords": [
+            "白酒",
+            "茅台",
+            "五粮液",
+            "泸州老窖",
+            "汾酒",
+            "洋河"
+          ],
+          "upstream": [
+            "baijiu_grain"
+          ],
+          "downstream": [
+            "baijiu_dist"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.4,
+              "upstream": 0.7,
+              "downstream": 0.6
+            },
+            "supply_down": {
+              "self": -1.4,
+              "upstream": -0.7,
+              "downstream": -0.4
+            }
+          },
+          "sensitivity": 1.4,
+          "bottleneck_weight": 1.5
+        },
+        "baijiu_dist": {
+          "name": "包装/分销",
+          "companies": [
+            "002701",
+            "002831",
+            "300755"
+          ],
+          "supplier_count": 8,
+          "bottleneck": false,
+          "keywords": [
+            "包装",
+            "分销",
+            "裕同科技",
+            "奥瑞金",
+            "华致酒行"
+          ],
+          "upstream": [
+            "baijiu_brewery"
+          ],
+          "downstream": [],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.0,
+              "upstream": 0.5,
+              "downstream": 0.4
+            },
+            "supply_down": {
+              "self": -1.0,
+              "upstream": -0.5,
+              "downstream": -0.3
+            }
+          },
+          "sensitivity": 1.0,
+          "bottleneck_weight": 1.0
+        }
+      }
+    },
+    "cn_appliance": {
+      "name": "家电供应链（中国）",
+      "market": "CN",
+      "timeframe": "2年",
+      "chain_type": "supply_chain",
+      "keywords": [
+        "家电",
+        "空调",
+        "冰箱",
+        "洗衣机",
+        "小家电",
+        "白色家电"
+      ],
+      "canary_stocks": [
+        "000333",
+        "000651",
+        "600690"
+      ],
+      "nodes": {
+        "appliance_parts": {
+          "name": "零部件/原材料",
+          "companies": [
+            "600019",
+            "000630",
+            "002050",
+            "002008",
+            "600183"
+          ],
+          "supplier_count": 7,
+          "bottleneck": false,
+          "keywords": [
+            "钢铁",
+            "铜",
+            "铝",
+            "压缩机",
+            "电机",
+            "宝钢",
+            "三花智控"
+          ],
+          "upstream": [],
+          "downstream": [
+            "appliance_mfg",
+            "appliance_chip"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 0.9,
+              "upstream": 0.5,
+              "downstream": 0.4
+            },
+            "supply_down": {
+              "self": -0.9,
+              "upstream": -0.5,
+              "downstream": -0.3
+            }
+          },
+          "sensitivity": 0.9,
+          "bottleneck_weight": 1.0
+        },
+        "appliance_chip": {
+          "name": "家电芯片/控制器",
+          "companies": [
+            "300327",
+            "002402",
+            "300458"
+          ],
+          "supplier_count": 4,
+          "bottleneck": true,
+          "keywords": [
+            "芯片",
+            "MCU",
+            "控制器",
+            "中颖电子",
+            "和而泰"
+          ],
+          "upstream": [
+            "appliance_parts"
+          ],
+          "downstream": [
+            "appliance_mfg"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.2,
+              "upstream": 0.6,
+              "downstream": 0.5
+            },
+            "supply_down": {
+              "self": -1.2,
+              "upstream": -0.6,
+              "downstream": -0.4
+            }
+          },
+          "sensitivity": 1.2,
+          "bottleneck_weight": 1.3
+        },
+        "appliance_mfg": {
+          "name": "整机制造",
+          "companies": [
+            "000333",
+            "000651",
+            "600690",
+            "002242",
+            "002032"
+          ],
+          "supplier_count": 10,
+          "bottleneck": true,
+          "keywords": [
+            "空调",
+            "冰箱",
+            "洗衣机",
+            "美的",
+            "格力",
+            "海尔",
+            "九阳",
+            "苏泊尔"
+          ],
+          "upstream": [
+            "appliance_parts",
+            "appliance_chip"
+          ],
+          "downstream": [
+            "appliance_channel"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.3,
+              "upstream": 0.7,
+              "downstream": 0.5
+            },
+            "supply_down": {
+              "self": -1.3,
+              "upstream": -0.7,
+              "downstream": -0.4
+            }
+          },
+          "sensitivity": 1.3,
+          "bottleneck_weight": 1.4
+        },
+        "appliance_channel": {
+          "name": "渠道/服务",
+          "companies": [
+            "002024",
+            "601933",
+            "002419"
+          ],
+          "supplier_count": 4,
+          "bottleneck": false,
+          "keywords": [
+            "零售",
+            "渠道",
+            "售后",
+            "苏宁",
+            "永辉"
+          ],
+          "upstream": [
+            "appliance_mfg"
+          ],
+          "downstream": [],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.1,
+              "upstream": 0.6,
+              "downstream": 0.4
+            },
+            "supply_down": {
+              "self": -1.1,
+              "upstream": -0.6,
+              "downstream": -0.3
+            }
+          },
+          "sensitivity": 1.1,
+          "bottleneck_weight": 1.0
+        }
+      }
+    },
+    "cn_bank": {
+      "name": "银行（中国）",
+      "market": "CN",
+      "timeframe": "2年",
+      "chain_type": "supply_chain",
+      "keywords": [
+        "银行",
+        "信贷",
+        "存款",
+        "贷款",
+        "息差",
+        "理财",
+        "零售银行"
+      ],
+      "canary_stocks": [
+        "600036",
+        "601398",
+        "601939"
+      ],
+      "nodes": {
+        "bank_deposit": {
+          "name": "存款/负债端",
+          "companies": [
+            "601398",
+            "601939",
+            "601288",
+            "600036",
+            "000001",
+            "600016",
+            "601166",
+            "600000"
+          ],
+          "supplier_count": 11,
+          "bottleneck": false,
+          "keywords": [
+            "存款",
+            "负债",
+            "活期",
+            "定期",
+            "工商银行",
+            "建设银行"
+          ],
+          "upstream": [],
+          "downstream": [
+            "bank_lending"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 0.9,
+              "upstream": 0.5,
+              "downstream": 0.4
+            },
+            "supply_down": {
+              "self": -0.9,
+              "upstream": -0.5,
+              "downstream": -0.3
+            }
+          },
+          "sensitivity": 0.9,
+          "bottleneck_weight": 1.0
+        },
+        "bank_lending": {
+          "name": "贷款/资产端",
+          "companies": [
+            "601398",
+            "601939",
+            "601288",
+            "600036",
+            "000001",
+            "601166",
+            "600016"
+          ],
+          "supplier_count": 9,
+          "bottleneck": true,
+          "keywords": [
+            "贷款",
+            "信贷",
+            "房贷",
+            "对公贷款",
+            "招商银行",
+            "平安银行"
+          ],
+          "upstream": [
+            "bank_deposit"
+          ],
+          "downstream": [
+            "bank_wealth"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.3,
+              "upstream": 0.7,
+              "downstream": 0.5
+            },
+            "supply_down": {
+              "self": -1.3,
+              "upstream": -0.7,
+              "downstream": -0.4
+            }
+          },
+          "sensitivity": 1.3,
+          "bottleneck_weight": 1.4
+        },
+        "bank_wealth": {
+          "name": "财富管理",
+          "companies": [
+            "600036",
+            "000001",
+            "601166"
+          ],
+          "supplier_count": 4,
+          "bottleneck": false,
+          "keywords": [
+            "财富管理",
+            "理财",
+            "私行",
+            "招商银行",
+            "平安银行"
+          ],
+          "upstream": [
+            "bank_lending"
+          ],
+          "downstream": [],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.1,
+              "upstream": 0.6,
+              "downstream": 0.4
+            },
+            "supply_down": {
+              "self": -1.1,
+              "upstream": -0.6,
+              "downstream": -0.3
+            }
+          },
+          "sensitivity": 1.1,
+          "bottleneck_weight": 1.0
+        }
+      }
+    },
+    "cn_securities": {
+      "name": "券商/保险（中国）",
+      "market": "CN",
+      "timeframe": "2年",
+      "chain_type": "supply_chain",
+      "keywords": [
+        "券商",
+        "证券",
+        "保险",
+        "经纪",
+        "投行",
+        "资管"
+      ],
+      "canary_stocks": [
+        "600030",
+        "601318",
+        "601211"
+      ],
+      "nodes": {
+        "sec_brokerage": {
+          "name": "经纪/财富管理",
+          "companies": [
+            "600030",
+            "601211",
+            "600837",
+            "000776",
+            "601066",
+            "601688",
+            "600958"
+          ],
+          "supplier_count": 10,
+          "bottleneck": false,
+          "keywords": [
+            "经纪",
+            "财富管理",
+            "证券交易",
+            "中信证券",
+            "国泰君安"
+          ],
+          "upstream": [],
+          "downstream": [
+            "sec_investment"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.1,
+              "upstream": 0.6,
+              "downstream": 0.4
+            },
+            "supply_down": {
+              "self": -1.1,
+              "upstream": -0.6,
+              "downstream": -0.3
+            }
+          },
+          "sensitivity": 1.1,
+          "bottleneck_weight": 1.0
+        },
+        "sec_investment": {
+          "name": "投行/投资",
+          "companies": [
+            "600030",
+            "601211",
+            "601066"
+          ],
+          "supplier_count": 4,
+          "bottleneck": true,
+          "keywords": [
+            "投行",
+            "IPO",
+            "并购",
+            "自营投资",
+            "中信证券"
+          ],
+          "upstream": [
+            "sec_brokerage"
+          ],
+          "downstream": [
+            "sec_insurance"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.2,
+              "upstream": 0.6,
+              "downstream": 0.5
+            },
+            "supply_down": {
+              "self": -1.2,
+              "upstream": -0.6,
+              "downstream": -0.4
+            }
+          },
+          "sensitivity": 1.2,
+          "bottleneck_weight": 1.3
+        },
+        "sec_insurance": {
+          "name": "保险/资管",
+          "companies": [
+            "601318",
+            "601628",
+            "601601",
+            "601336"
+          ],
+          "supplier_count": 5,
+          "bottleneck": false,
+          "keywords": [
+            "保险",
+            "寿险",
+            "财险",
+            "资管",
+            "中国平安",
+            "中国人寿",
+            "中国太保"
+          ],
+          "upstream": [
+            "sec_investment"
+          ],
+          "downstream": [],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.3,
+              "upstream": 0.7,
+              "downstream": 0.5
+            },
+            "supply_down": {
+              "self": -1.3,
+              "upstream": -0.7,
+              "downstream": -0.4
+            }
+          },
+          "sensitivity": 1.3,
+          "bottleneck_weight": 1.2
+        }
+      }
+    },
+    "cn_metal_steel": {
+      "name": "有色金属/钢铁（中国）",
+      "market": "CN",
+      "timeframe": "2年",
+      "chain_type": "supply_chain",
+      "keywords": [
+        "有色",
+        "钢铁",
+        "铜",
+        "铝",
+        "锌",
+        "铅",
+        "镍",
+        "锂",
+        "黄金",
+        "稀土",
+        "采矿",
+        "冶炼",
+        "加工",
+        "线缆",
+        "特钢"
+      ],
+      "canary_stocks": [
+        "601899",
+        "600362",
+        "600019",
+        "600547",
+        "002203"
+      ],
+      "nodes": {
+        "metal_mining": {
+          "name": "采矿/勘探",
+          "companies": [
+            "601899",
+            "603993",
+            "000630",
+            "600362",
+            "600547",
+            "600489"
+          ],
+          "supplier_count": 8,
+          "bottleneck": false,
+          "keywords": [
+            "采矿",
+            "矿产",
+            "勘探",
+            "紫金矿业",
+            "洛阳钼业",
+            "铜陵有色"
+          ],
+          "upstream": [],
+          "downstream": [
+            "ore_dressing"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.1,
+              "upstream": 0.6,
+              "downstream": 0.4
+            },
+            "supply_down": {
+              "self": -1.1,
+              "upstream": -0.6,
+              "downstream": -0.3
+            }
+          },
+          "sensitivity": 1.1,
+          "bottleneck_weight": 1.4
+        },
+        "metal_smelting": {
+          "name": "冶炼/加工",
+          "companies": [
+            "600019",
+            "000898",
+            "600010",
+            "000932",
+            "600808"
+          ],
+          "supplier_count": 10,
+          "bottleneck": false,
+          "keywords": [
+            "冶炼",
+            "电解",
+            "钢铁",
+            "轧钢",
+            "宝钢",
+            "鞍钢",
+            "包钢"
+          ],
+          "upstream": [
+            "ore_dressing"
+          ],
+          "downstream": [
+            "metal_refining",
+            "special_steel"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.1,
+              "upstream": 0.6,
+              "downstream": 0.4
+            },
+            "supply_down": {
+              "self": -1.1,
+              "upstream": -0.6,
+              "downstream": -0.3
+            }
+          },
+          "sensitivity": 1.1,
+          "bottleneck_weight": 1.0
+        },
+        "ore_dressing": {
+          "name": "选矿/初加工",
+          "companies": [
+            "603993",
+            "600362",
+            "000630",
+            "002466",
+            "002460"
+          ],
+          "supplier_count": 10,
+          "bottleneck": true,
+          "keywords": [
+            "选矿",
+            "精矿",
+            "锂矿",
+            "铜精矿",
+            "钼精矿"
+          ],
+          "upstream": [
+            "metal_mining"
+          ],
+          "downstream": [
+            "metal_smelting",
+            "metal_refining"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.1,
+              "upstream": 0.5,
+              "downstream": 0.4
+            },
+            "supply_down": {
+              "self": -1.1,
+              "upstream": -0.4,
+              "downstream": -0.3
+            }
+          },
+          "sensitivity": 1.0,
+          "bottleneck_weight": 1.3
+        },
+        "metal_refining": {
+          "name": "精炼/深加工",
+          "companies": [
+            "002203",
+            "002171",
+            "600110",
+            "600255",
+            "002340"
+          ],
+          "supplier_count": 10,
+          "bottleneck": false,
+          "keywords": [
+            "精炼",
+            "电解铜",
+            "铜杆",
+            "铜箔",
+            "铝板",
+            "格林美"
+          ],
+          "upstream": [
+            "metal_smelting"
+          ],
+          "downstream": [
+            "wire_cable",
+            "metal_application"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.2,
+              "upstream": 0.6,
+              "downstream": 0.4
+            },
+            "supply_down": {
+              "self": -1.2,
+              "upstream": -0.4,
+              "downstream": -0.3
+            }
+          },
+          "sensitivity": 1.1,
+          "bottleneck_weight": 1.0
+        },
+        "special_steel": {
+          "name": "特钢/合金",
+          "companies": [
+            "600399",
+            "600507",
+            "002756",
+            "000708"
+          ],
+          "supplier_count": 9,
+          "bottleneck": false,
+          "keywords": [
+            "特钢",
+            "合金钢",
+            "不锈钢",
+            "抚顺特钢",
+            "中信特钢"
+          ],
+          "upstream": [
+            "metal_smelting"
+          ],
+          "downstream": [
+            "metal_application"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.3,
+              "upstream": 0.6,
+              "downstream": 0.5
+            },
+            "supply_down": {
+              "self": -1.3,
+              "upstream": -0.5,
+              "downstream": -0.4
+            }
+          },
+          "sensitivity": 1.2,
+          "bottleneck_weight": 1.1
+        },
+        "wire_cable": {
+          "name": "线缆制造",
+          "companies": [
+            "600973",
+            "002533",
+            "600522",
+            "002276"
+          ],
+          "supplier_count": 9,
+          "bottleneck": false,
+          "keywords": [
+            "线缆",
+            "电缆",
+            "电线",
+            "宝胜股份",
+            "中天科技"
+          ],
+          "upstream": [
+            "metal_refining"
+          ],
+          "downstream": [],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.1,
+              "upstream": 0.5,
+              "downstream": 0.4
+            },
+            "supply_down": {
+              "self": -1.1,
+              "upstream": -0.4,
+              "downstream": -0.3
+            }
+          },
+          "sensitivity": 1.0,
+          "bottleneck_weight": 1.0
+        },
+        "metal_application": {
+          "name": "制造应用",
+          "companies": [
+            "002340",
+            "603260",
+            "600255"
+          ],
+          "supplier_count": 8,
+          "bottleneck": false,
+          "keywords": [
+            "金属加工",
+            "五金",
+            "电池材料",
+            "新能源材料"
+          ],
+          "upstream": [
+            "metal_refining",
+            "special_steel"
+          ],
+          "downstream": [],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.0,
+              "upstream": 0.5,
+              "downstream": 0.4
+            },
+            "supply_down": {
+              "self": -1.0,
+              "upstream": -0.4,
+              "downstream": -0.3
+            }
+          },
+          "sensitivity": 0.9,
+          "bottleneck_weight": 1.0
+        }
+      }
+    },
+    "cn_chemical": {
+      "name": "化工/建材（中国）",
+      "market": "CN",
+      "timeframe": "2年",
+      "chain_type": "supply_chain",
+      "keywords": [
+        "化工",
+        "石化",
+        "建材",
+        "水泥",
+        "化纤",
+        "染料",
+        "涂料",
+        "化肥",
+        "MDI",
+        "PTA",
+        "玻纤",
+        "玻璃",
+        "新材料"
+      ],
+      "canary_stocks": [
+        "600309",
+        "600585",
+        "600346",
+        "600352"
+      ],
+      "nodes": {
+        "chem_raw": {
+          "name": "基础化工",
+          "companies": [
+            "600309",
+            "000830",
+            "002601",
+            "601233",
+            "002064",
+            "000792"
+          ],
+          "supplier_count": 8,
+          "bottleneck": false,
+          "keywords": [
+            "化工",
+            "MDI",
+            "钛白粉",
+            "化纤",
+            "万华化学",
+            "桐昆股份"
+          ],
+          "upstream": [],
+          "downstream": [
+            "basic_chemical"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.1,
+              "upstream": 0.6,
+              "downstream": 0.4
+            },
+            "supply_down": {
+              "self": -1.1,
+              "upstream": -0.6,
+              "downstream": -0.3
+            }
+          },
+          "sensitivity": 1.1,
+          "bottleneck_weight": 1.0
+        },
+        "chem_building": {
+          "name": "建材/水泥",
+          "companies": [
+            "600585",
+            "600801",
+            "000401",
+            "000786",
+            "002271"
+          ],
+          "supplier_count": 7,
+          "bottleneck": true,
+          "keywords": [
+            "水泥",
+            "建材",
+            "海螺水泥",
+            "华新水泥",
+            "冀东水泥"
+          ],
+          "upstream": [
+            "basic_chemical"
+          ],
+          "downstream": [],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.2,
+              "upstream": 0.6,
+              "downstream": 0.5
+            },
+            "supply_down": {
+              "self": -1.2,
+              "upstream": -0.6,
+              "downstream": -0.4
+            }
+          },
+          "sensitivity": 1.2,
+          "bottleneck_weight": 1.3
+        },
+        "basic_chemical": {
+          "name": "基础化工",
+          "companies": [
+            "600309",
+            "600346",
+            "000301",
+            "601233",
+            "600143",
+            "002092"
+          ],
+          "supplier_count": 11,
+          "bottleneck": true,
+          "keywords": [
+            "石化",
+            "烯烃",
+            "芳烃",
+            "MDI",
+            "PTA",
+            "化纤",
+            "万华化学",
+            "恒力石化"
+          ],
+          "upstream": [
+            "chem_raw"
+          ],
+          "downstream": [
+            "fine_chemical",
+            "chem_building",
+            "textile_chemical"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.3,
+              "upstream": 0.6,
+              "downstream": 0.5
+            },
+            "supply_down": {
+              "self": -1.3,
+              "upstream": -0.5,
+              "downstream": -0.4
+            }
+          },
+          "sensitivity": 1.2,
+          "bottleneck_weight": 1.3
+        },
+        "fine_chemical": {
+          "name": "精细化工",
+          "companies": [
+            "600352",
+            "002601",
+            "600141",
+            "600309"
+          ],
+          "supplier_count": 9,
+          "bottleneck": false,
+          "keywords": [
+            "精细化工",
+            "染料",
+            "涂料",
+            "颜料",
+            "浙江龙盛",
+            "龙佰集团"
+          ],
+          "upstream": [
+            "basic_chemical"
+          ],
+          "downstream": [],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.1,
+              "upstream": 0.5,
+              "downstream": 0.4
+            },
+            "supply_down": {
+              "self": -1.1,
+              "upstream": -0.4,
+              "downstream": -0.3
+            }
+          },
+          "sensitivity": 1.0,
+          "bottleneck_weight": 1.0
+        },
+        "textile_chemical": {
+          "name": "纺织化纤",
+          "companies": [
+            "601233",
+            "600143",
+            "002064"
+          ],
+          "supplier_count": 8,
+          "bottleneck": false,
+          "keywords": [
+            "化纤",
+            "涤纶",
+            "氨纶",
+            "锦纶",
+            "桐昆股份",
+            "金发科技"
+          ],
+          "upstream": [
+            "basic_chemical"
+          ],
+          "downstream": [],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.1,
+              "upstream": 0.5,
+              "downstream": 0.4
+            },
+            "supply_down": {
+              "self": -1.1,
+              "upstream": -0.4,
+              "downstream": -0.3
+            }
+          },
+          "sensitivity": 1.0,
+          "bottleneck_weight": 1.0
+        }
+      }
+    },
+    "cn_semicon": {
+      "name": "半导体国产化（中国）",
+      "market": "CN",
+      "timeframe": "2年",
+      "chain_type": "supply_chain",
+      "keywords": [
+        "半导体",
+        "芯片",
+        "晶圆",
+        "国产替代",
+        "集成电路",
+        "光刻",
+        "封测",
+        "材料"
+      ],
+      "canary_stocks": [
+        "688981",
+        "002371",
+        "603501"
+      ],
+      "nodes": {
+        "chip_design_cn": {
+          "name": "芯片设计",
+          "companies": [
+            "603501",
+            "688008",
+            "300782",
+            "603986"
+          ],
+          "supplier_count": 3,
+          "bottleneck": false,
+          "bottleneck_weight": 1.0,
+          "node_type": "main",
+          "keywords": [
+            "芯片设计",
+            "IC设计",
+            "韦尔股份",
+            "澜起科技",
+            "卓胜微",
+            "兆易创新"
+          ],
+          "upstream": [
+            "chip_eda_cn"
+          ],
+          "downstream": [
+            "chip_foundry_cn"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.2,
+              "upstream": 0,
+              "downstream": 0.6
+            },
+            "supply_down": {
+              "self": -1.1,
+              "upstream": 0,
+              "downstream": -0.4
+            }
+          },
+          "sensitivity": 1.2
+        },
+        "chip_eda_cn": {
+          "name": "EDA/IP授权",
+          "companies": [
+            "688711",
+            "301269"
+          ],
+          "supplier_count": 3,
+          "bottleneck": true,
+          "bottleneck_weight": 1.4,
+          "node_type": "main",
+          "keywords": [
+            "EDA",
+            "IP",
+            "芯片设计工具",
+            "华大九天"
+          ],
+          "upstream": [],
+          "downstream": [
+            "chip_design_cn"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.3,
+              "upstream": 0,
+              "downstream": 0.5
+            },
+            "supply_down": {
+              "self": -1.3,
+              "upstream": 0,
+              "downstream": -0.4
+            }
+          },
+          "sensitivity": 1.3
+        },
+        "chip_foundry_cn": {
+          "name": "晶圆代工/制造",
+          "companies": [
+            "688981",
+            "688347",
+            "600703"
+          ],
+          "supplier_count": 3,
+          "bottleneck": true,
+          "bottleneck_weight": 1.6,
+          "node_type": "main",
+          "keywords": [
+            "晶圆",
+            "代工",
+            "foundry",
+            "中芯国际",
+            "华虹公司",
+            "三安光电"
+          ],
+          "upstream": [
+            "chip_design_cn",
+            "chip_equip_cn",
+            "chip_materials_cn"
+          ],
+          "downstream": [
+            "chip_foundry_logic",
+            "chip_foundry_memory",
+            "chip_foundry_analog",
+            "chip_package_cn"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.5,
+              "upstream": 0.6,
+              "downstream": 0.6
+            },
+            "supply_down": {
+              "self": -1.5,
+              "upstream": -0.5,
+              "downstream": -0.5
+            }
+          },
+          "sensitivity": 1.4
+        },
+        "chip_equip_cn": {
+          "name": "半导体设备",
+          "companies": [
+            "002371",
+            "688012",
+            "688072",
+            "300567"
+          ],
+          "supplier_count": 3,
+          "bottleneck": true,
+          "bottleneck_weight": 1.5,
+          "node_type": "main",
+          "keywords": [
+            "半导体设备",
+            "刻蚀",
+            "薄膜",
+            "北方华创",
+            "中微公司",
+            "拓荆科技",
+            "精测电子"
+          ],
+          "upstream": [],
+          "downstream": [
+            "chip_foundry_cn",
+            "chip_package_cn"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.3,
+              "upstream": 0,
+              "downstream": 0.7
+            },
+            "supply_down": {
+              "self": -1.3,
+              "upstream": 0,
+              "downstream": -0.6
+            }
+          },
+          "sensitivity": 1.3
+        },
+        "chip_materials_cn": {
+          "name": "半导体材料",
+          "companies": [
+            "688126",
+            "688019",
+            "002409",
+            "300346"
+          ],
+          "supplier_count": 3,
+          "bottleneck": true,
+          "bottleneck_weight": 1.2,
+          "node_type": "main",
+          "keywords": [
+            "硅片",
+            "光刻胶",
+            "电子特气",
+            "沪硅产业",
+            "安集科技",
+            "雅克科技",
+            "南大光电"
+          ],
+          "upstream": [],
+          "downstream": [
+            "chip_foundry_cn"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.2,
+              "upstream": 0,
+              "downstream": 0.5
+            },
+            "supply_down": {
+              "self": -1.1,
+              "upstream": 0,
+              "downstream": -0.4
+            }
+          },
+          "sensitivity": 1.2
+        },
+        "chip_package_cn": {
+          "name": "封装测试",
+          "companies": [
+            "600584",
+            "002156",
+            "002185",
+            "688362"
+          ],
+          "supplier_count": 3,
+          "bottleneck": true,
+          "bottleneck_weight": 1.3,
+          "node_type": "main",
+          "keywords": [
+            "封测",
+            "封装",
+            "测试",
+            "长电科技",
+            "通富微电",
+            "华天科技",
+            "甬矽电子"
+          ],
+          "upstream": [
+            "chip_foundry_cn"
+          ],
+          "downstream": [
+            "chip_package_traditional",
+            "chip_package_advanced"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.1,
+              "upstream": 0.5,
+              "downstream": 0
+            },
+            "supply_down": {
+              "self": -1.0,
+              "upstream": -0.4,
+              "downstream": 0
+            }
+          },
+          "sensitivity": 1.1
+        },
+        "chip_foundry_logic": {
+          "name": "逻辑芯片代工",
+          "companies": [
+            "688981"
+          ],
+          "supplier_count": 3,
+          "bottleneck": true,
+          "bottleneck_weight": 1.5,
+          "node_type": "branch",
+          "keywords": [
+            "逻辑芯片",
+            "SoC",
+            "中芯国际"
+          ],
+          "upstream": [
+            "chip_foundry_cn"
+          ],
+          "downstream": [
+            "chip_package_cn"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.0,
+              "upstream": 0,
+              "downstream": 0
+            },
+            "supply_down": {
+              "self": -1.0,
+              "upstream": 0,
+              "downstream": 0
+            }
+          },
+          "sensitivity": 1.3
+        },
+        "chip_foundry_memory": {
+          "name": "存储芯片代工",
+          "companies": [
+            "688981"
+          ],
+          "supplier_count": 3,
+          "bottleneck": false,
+          "bottleneck_weight": 1.0,
+          "node_type": "branch",
+          "keywords": [
+            "存储芯片",
+            "DRAM",
+            "NAND"
+          ],
+          "upstream": [
+            "chip_foundry_cn"
+          ],
+          "downstream": [
+            "chip_package_cn"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.0,
+              "upstream": 0,
+              "downstream": 0
+            },
+            "supply_down": {
+              "self": -1.0,
+              "upstream": 0,
+              "downstream": 0
+            }
+          },
+          "sensitivity": 1.1
+        },
+        "chip_foundry_analog": {
+          "name": "模拟芯片代工",
+          "companies": [
+            "688347",
+            "600703"
+          ],
+          "supplier_count": 3,
+          "bottleneck": false,
+          "bottleneck_weight": 1.0,
+          "node_type": "branch",
+          "keywords": [
+            "模拟芯片",
+            "电源管理",
+            "射频",
+            "华虹",
+            "三安"
+          ],
+          "upstream": [
+            "chip_foundry_cn"
+          ],
+          "downstream": [
+            "chip_package_cn"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.0,
+              "upstream": 0,
+              "downstream": 0
+            },
+            "supply_down": {
+              "self": -1.0,
+              "upstream": 0,
+              "downstream": 0
+            }
+          },
+          "sensitivity": 1.0
+        },
+        "chip_package_traditional": {
+          "name": "传统封装",
+          "companies": [
+            "600584",
+            "002185"
+          ],
+          "supplier_count": 3,
+          "bottleneck": false,
+          "bottleneck_weight": 1.0,
+          "node_type": "branch",
+          "keywords": [
+            "传统封装",
+            "DIP",
+            "QFP",
+            "QFN",
+            "长电",
+            "华天"
+          ],
+          "upstream": [
+            "chip_package_cn"
+          ],
+          "downstream": [],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.0,
+              "upstream": 0,
+              "downstream": 0
+            },
+            "supply_down": {
+              "self": -1.0,
+              "upstream": 0,
+              "downstream": 0
+            }
+          },
+          "sensitivity": 0.9
+        },
+        "chip_package_advanced": {
+          "name": "先进封装(SiP/3D)",
+          "companies": [
+            "002156",
+            "688362"
+          ],
+          "supplier_count": 3,
+          "bottleneck": true,
+          "bottleneck_weight": 1.5,
+          "node_type": "branch",
+          "keywords": [
+            "先进封装",
+            "SiP",
+            "3D封装",
+            "Fan-out",
+            "通富微电",
+            "甬矽电子"
+          ],
+          "upstream": [
+            "chip_package_cn"
+          ],
+          "downstream": [],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.0,
+              "upstream": 0,
+              "downstream": 0
+            },
+            "supply_down": {
+              "self": -1.0,
+              "upstream": 0,
+              "downstream": 0
+            }
+          },
+          "sensitivity": 1.3
+        },
+        "chip_equip_litho": {
+          "name": "光刻设备",
+          "companies": [
+            "002371"
+          ],
+          "supplier_count": 3,
+          "bottleneck": true,
+          "bottleneck_weight": 1.6,
+          "node_type": "branch",
+          "keywords": [
+            "光刻",
+            "曝光",
+            "光刻机"
+          ],
+          "upstream": [],
+          "downstream": [
+            "chip_foundry_cn"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.0,
+              "upstream": 0,
+              "downstream": 0
+            },
+            "supply_down": {
+              "self": -1.0,
+              "upstream": 0,
+              "downstream": 0
+            }
+          },
+          "sensitivity": 1.4
+        },
+        "chip_equip_etch": {
+          "name": "刻蚀设备",
+          "companies": [
+            "688012"
+          ],
+          "supplier_count": 3,
+          "bottleneck": true,
+          "bottleneck_weight": 1.4,
+          "node_type": "branch",
+          "keywords": [
+            "刻蚀",
+            "等离子刻蚀",
+            "中微公司"
+          ],
+          "upstream": [],
+          "downstream": [
+            "chip_foundry_cn"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.0,
+              "upstream": 0,
+              "downstream": 0
+            },
+            "supply_down": {
+              "self": -1.0,
+              "upstream": 0,
+              "downstream": 0
+            }
+          },
+          "sensitivity": 1.2
+        },
+        "chip_equip_dep": {
+          "name": "薄膜沉积",
+          "companies": [
+            "688072"
+          ],
+          "supplier_count": 3,
+          "bottleneck": true,
+          "bottleneck_weight": 1.3,
+          "node_type": "branch",
+          "keywords": [
+            "薄膜沉积",
+            "CVD",
+            "PVD",
+            "拓荆科技"
+          ],
+          "upstream": [],
+          "downstream": [
+            "chip_foundry_cn"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.0,
+              "upstream": 0,
+              "downstream": 0
+            },
+            "supply_down": {
+              "self": -1.0,
+              "upstream": 0,
+              "downstream": 0
+            }
+          },
+          "sensitivity": 1.2
+        },
+        "semi_chemicals": {
+          "name": "半导体化学品",
+          "companies": [
+            "002409",
+            "300346"
+          ],
+          "supplier_count": 3,
+          "bottleneck": false,
+          "bottleneck_weight": 1.0,
+          "node_type": "support",
+          "keywords": [
+            "化学品",
+            "抛光液",
+            "雅克科技",
+            "南大光电"
+          ],
+          "upstream": [],
+          "downstream": [
+            "chip_foundry_cn",
+            "chip_package_cn"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.0,
+              "upstream": 0,
+              "downstream": 0
+            },
+            "supply_down": {
+              "self": -1.0,
+              "upstream": 0,
+              "downstream": 0
+            }
+          },
+          "sensitivity": 1.0
+        },
+        "semi_quartz": {
+          "name": "石英制品",
+          "companies": [
+            "605111",
+            "300842"
+          ],
+          "supplier_count": 3,
+          "bottleneck": true,
+          "bottleneck_weight": 1.2,
+          "node_type": "support",
+          "keywords": [
+            "石英",
+            "石英坩埚",
+            "新莱应材"
+          ],
+          "upstream": [],
+          "downstream": [
+            "chip_foundry_cn",
+            "chip_equip_cn"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.0,
+              "upstream": 0,
+              "downstream": 0
+            },
+            "supply_down": {
+              "self": -1.0,
+              "upstream": 0,
+              "downstream": 0
+            }
+          },
+          "sensitivity": 1.0
+        },
+        "semi_cleanroom": {
+          "name": "洁净室工程",
+          "companies": [
+            "603929"
+          ],
+          "supplier_count": 3,
+          "bottleneck": false,
+          "bottleneck_weight": 1.0,
+          "node_type": "support",
+          "keywords": [
+            "洁净室",
+            "无尘室",
+            "亚翔集成"
+          ],
+          "upstream": [],
+          "downstream": [
+            "chip_foundry_cn",
+            "chip_package_cn"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.0,
+              "upstream": 0,
+              "downstream": 0
+            },
+            "supply_down": {
+              "self": -1.0,
+              "upstream": 0,
+              "downstream": 0
+            }
+          },
+          "sensitivity": 0.9
+        },
+        "semi_design_ip": {
+          "name": "设计服务/IP",
+          "companies": [
+            "688728",
+            "688521"
+          ],
+          "supplier_count": 3,
+          "bottleneck": false,
+          "bottleneck_weight": 1.0,
+          "node_type": "support",
+          "keywords": [
+            "设计服务",
+            "芯原股份",
+            "芯原微"
+          ],
+          "upstream": [],
+          "downstream": [
+            "chip_design_cn"
+          ],
+          "impact_profile": {
+            "demand_up": {
+              "self": 1.0,
+              "upstream": 0,
+              "downstream": 0
+            },
+            "supply_down": {
+              "self": -1.0,
+              "upstream": 0,
+              "downstream": 0
+            }
+          },
+          "sensitivity": 0.9
+        }
+      }
+    }
+  }
+}
