@@ -112,7 +112,7 @@ def get_us_quote_tencent(symbol):
         result["_source"] = "tencent"
         result["_name"] = parts[1] if parts[1] else symbol
         result["price"] = _float(parts[3])
-        result["change_pct"] = _float(parts[32])
+        result["change_pct"] = _float(parts[32]) / 100.0  # 腾讯返回的是百分值(如-13.18→-0.1318)
         result["high"] = _float(parts[33])
         result["low"] = _float(parts[34])
         result["currency"] = parts[35] if parts[35] else "USD"
