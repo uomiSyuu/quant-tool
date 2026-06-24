@@ -1,11 +1,45 @@
 # -*- coding: utf-8 -*-
-"""数据代理 v7.3 — 三大系统集成：行业分位 + 稳定性 + 风险因子"""
+"""数据代理 v8.6 — 三大系统集成：行业分位 + 稳定性 + 风险因子"""
 import json, os, re, subprocess, sys, math, statistics
+import time as _time
+import threading as _threading
 from flask import Flask, jsonify, send_from_directory, request, redirect
+
+# ====== 修复: JSON输出处理 NaN/Infinity (JS JSON.parse 不识别 NaN) ======
+import math as _math
+_orig_json_dumps = json.dumps
+def _safe_json_dumps(obj, **kwargs):
+    """全局替换NaN/Infinity为null，确保JSON合规"""
+    def _sanitize(o):
+        if isinstance(o, float):
+            if _math.isnan(o) or _math.isinf(o):
+                return None
+            return o
+        if isinstance(o, dict):
+            return {k: _sanitize(v) for k, v in o.items()}
+        if isinstance(o, (list, tuple)):
+            return [_sanitize(i) for i in o]
+        return o
+    return _orig_json_dumps(_sanitize(obj), **kwargs)
+json.dumps = _safe_json_dumps
 
 app = Flask(__name__, static_folder=None)
 DATA_DIR = os.path.dirname(os.path.abspath(__file__))
-WORKSPACE = os.path.dirname(DATA_DIR)
+WORKSPACE = DATA_DIR  # Docker中所有文件在同一目录，本地也在同一目录
+
+# 将适配器目录加入Python路径（quant_tool/ 子目录）
+_qt_dir = os.path.join(DATA_DIR, "quant_tool")
+if os.path.isdir(_qt_dir) and _qt_dir not in sys.path:
+    sys.path.insert(0, _qt_dir)
+
+# v9.0+: 模块级导入SEC EDGAR适配器（确保全局可用，避免运行时导入失败）
+_SEC_AVAILABLE = False
+try:
+    from sec_edgar_adapter import parse_sec_financials
+    from us_stock_adapter import calc_us_fiscal_period, get_us_quote
+    _SEC_AVAILABLE = True
+except Exception as _sec_import_err:
+    print(f"[startup] sec_edgar import: {_sec_import_err}")
 
 # ====== 访问密码保护（可选）=====
 # 设置 ACCESS_KEY 环境变量后，外部访问需要 ?key=XXX 参数
@@ -37,9 +71,50 @@ def check_access():
     </form>
     <p class="s">提示：找管理员获取访问密钥</p></body></html>"""
 
+# ====== 速率限制 (v9.0+) ======
+# 每IP每分钟最多N次请求，超限返回429
+RATE_LIMIT_PER_MIN = 60
+_rl_store = {}
+_rl_lock = _threading.Lock()
+
+def _rl_check(ip):
+    now = _time.time()
+    with _rl_lock:
+        ts = _rl_store.get(ip, [])
+        ts = [t for t in ts if now - t < 60]
+        if len(ts) >= RATE_LIMIT_PER_MIN:
+            _rl_store[ip] = ts
+            return False
+        ts.append(now)
+        _rl_store[ip] = ts
+        return True
+
+# ====== 内存缓存 (v9.0+) ======
+_cache_store = {}
+_cache_lock = _threading.Lock()
+CACHE_TTL = {"stock": 300, "news": 1800}
+
+def _cache_get(key):
+    with _cache_lock:
+        e = _cache_store.get(key)
+        if e and _time.time() < e[1]:
+            return e[0]
+        if e:
+            del _cache_store[key]
+    return None
+
+def _cache_set(key, data, ttl):
+    with _cache_lock:
+        _cache_store[key] = (data, _time.time() + ttl)
+
 # ====== 数据源路径 ======
-NODE = r"C:\Users\ASUS\.workbuddy\binaries\node\versions\22.22.2\node.exe"
-NPX = r"C:\Users\ASUS\.workbuddy\binaries\node\versions\22.22.2\npx.cmd"
+# v9.0+: 跨平台Node路径 — Windows用托管路径，Docker/Linux用系统PATH
+if os.name == "nt":
+    NODE = r"C:\Users\ASUS\.workbuddy\binaries\node\versions\22.22.2\node.exe"
+    NPX = r"C:\Users\ASUS\.workbuddy\binaries\node\versions\22.22.2\npx.cmd"
+else:
+    NODE = "node"
+    NPX = "npx"
 # v7.5: westock-data-clawhub 是npm包，通过 npx -y 调用
 WESTOCK_PKG = "westock-data-clawhub@1.0.4"
 WESTOCK_CMD = [NPX, "-y", WESTOCK_PKG]
@@ -333,15 +408,17 @@ def _normalize_symbol(symbol):
 # ====== 备用数据源: westock缺失时自动补数 ======
 def _fetch_fallback(fd, stock_code, prefix, sym):
     """
-    当 westock 未返回财务数据时，从 yfinance(美股/港股) 或 akshare(A股) 补充。
-    只补充缺失字段，不覆盖已有数据。
-    v7.5: 即使 westock 有财务数据，也尝试补市场行情数据(pe/pb/ps/市值等)
+    从 yfinance(美股/港股) 或 akshare(A股) 补充缺失数据。
+    
+    两种场景：
+    1. westock 完全没数据 → 强依赖 fallback 获取全部财务+市场数据
+    2. westock 有财务数据但缺少市场数据(股息率/PE等) → 仅补充市场数据
     """
     import time as _t, random as _r
     has_income = fd.get("revenue") is not None or fd.get("net_income") is not None
     
     if not has_income:
-        # 完全无数据 → 强依赖 fallback
+        # 场景1: 完全无数据 → 强依赖 fallback
         _t.sleep(0.2 + _r.random()*0.5)
         if prefix == "us":
             _fallback_yfinance_timeout(fd, sym, max_wait=10)
@@ -351,6 +428,8 @@ def _fetch_fallback(fd, stock_code, prefix, sym):
             _fallback_yfinance_hk(fd, sym)
         elif prefix in ("sh", "sz"):
             _fallback_akshare(fd, stock_code, prefix, sym)
+    # else: westock有数据时不再yfinance补数据（yfinance限流严重，反而造成超时）
+    #      PE/PB/PS/市值已在衍生计算中自动完成
 
 def _fallback_yfinance_timeout(fd, sym, max_wait=10):
     """yfinance 带超时包装：用线程池实现，max_wait秒内未完成则放弃"""
@@ -752,7 +831,149 @@ def fetch_live(symbol):
     fd = {}
     multi = {}
 
-    # ----- 1. 行情(使用profile获取名称，价格由yfinance后备补充) -----
+    # v8.4+: A股 → 使用 a_share_adapter + Tencent API fallback
+    if prefix in ("sh", "sz", "bj"):
+        try:
+            from a_share_adapter import get_ashare_quote, parse_ashare_financials
+            code = sym
+            q = get_ashare_quote(stock_code)
+            if q:
+                fd["_name"] = q.get("name", sym)
+                fd["price"] = q.get("price")
+                fd["pe"] = q.get("pe") or q.get("pe_dynamic")
+                fd["market_cap"] = q.get("market_cap")
+                fd["pb"] = q.get("pb")
+                fd["_cn_sector"] = "A股"
+            
+            # v8.7: Tencent API 补充PE/PB/市值（EastMoney挂掉时的备胎）
+            if not fd.get("pe") or not fd.get("pb") or not fd.get("market_cap"):
+                try:
+                    import requests
+                    tencent_url = f"https://qt.gtimg.cn/q={stock_code}"
+                    tr = requests.get(tencent_url, timeout=5)
+                    tr.encoding = 'gbk'
+                    body = tr.text.strip()
+                    if '=' in body and body.count('~') > 30:
+                        parts = body.split('~')
+                        # PE-TTM通常在位置53(0-indexed)
+                        if not fd.get("pe") and len(parts) > 54:
+                            pe_v = _fmt_num(parts[53])
+                            if pe_v and 0 < pe_v < 10000:
+                                fd["pe"] = pe_v
+                        # 市值在位置45-46
+                        if not fd.get("market_cap") and len(parts) > 46:
+                            mcap_v = _fmt_num(parts[45])
+                            if mcap_v and mcap_v > 0:
+                                fd["market_cap"] = mcap_v * 1e8  # Tencent返回亿
+                        # PB在位置?
+                        if not fd.get("pb") and len(parts) > 51:
+                            # Tencent PB字段不稳定，用price/(equity/shares)估算
+                            pass
+                except Exception as te:
+                    print(f"[tencent_fallback] {symbol}: {te}")
+            
+            # 财报
+            parse_ashare_financials(fd, code)
+            
+            # v8.7: A股的报告期转换(YYYYMMDD → FY25Q1格式)
+            rd = fd.get("report_date", "")
+            if rd and len(rd) >= 8:
+                try:
+                    from datetime import datetime
+                    dt = datetime.strptime(rd[:8], "%Y%m%d")
+                    q = (dt.month - 1) // 3 + 1
+                    fd["_report_period"] = f"FY{dt.year%100}Q{q}"
+                    fd["_report_date"] = rd[:10]
+                except:
+                    fd["_report_period"] = rd[:8]
+            
+            # v8.7: 补充衍生指标（不在parse_ashare_financials中计算的）
+            # 毛利率: total revenue - total cost approximation
+            if fd.get("gross_profit") is None and fd.get("revenue") and fd.get("total_cost") and fd["revenue"] > 0:
+                est_gp = fd["revenue"] - fd["total_cost"]
+                if est_gp > 0:
+                    fd["gross_margin"] = round(est_gp / fd["revenue"], 4)
+            # 净利率
+            if fd.get("net_margin") is None and fd.get("net_income") and fd.get("revenue") and fd["revenue"] > 0:
+                fd["net_margin"] = round(fd["net_income"] / fd["revenue"], 4)
+            # ROE = net_income / equity (期间需要年化: 单季度*4)
+            if fd.get("roe") is None and fd.get("net_income") and fd.get("equity") and fd["equity"] > 0:
+                fd["roe"] = round(fd["net_income"] * 4 / fd["equity"], 4)
+            # ROIC 近似: net_income / (equity + total_liabilities)
+            if fd.get("roic") is None and fd.get("net_income") and fd.get("equity") and fd.get("total_liabilities"):
+                tc = fd["equity"] + fd["total_liabilities"]
+                if tc > 0:
+                    fd["roic"] = round(fd["net_income"] * 4 / tc, 4)
+            # FCF Yield = FCF / market_cap
+            if fd.get("fcf_yield") is None and fd.get("free_cashflow") and fd.get("market_cap") and fd["market_cap"] > 0:
+                fcf_annual = fd["free_cashflow"] * 4 if fd["free_cashflow"] < fd["market_cap"] * 0.5 else fd["free_cashflow"]
+                fd["fcf_yield"] = round(fcf_annual / fd["market_cap"], 4)
+            # EV/EBITDA 近似 = market_cap / (ebitda or ebit)
+            if fd.get("ev_ebitda") is None and fd.get("market_cap") and fd["market_cap"] > 0:
+                ebitda_val = fd.get("ebitda") or fd.get("operating_income")
+                if ebitda_val and ebitda_val > 0:
+                    fd["ev_ebitda"] = round(fd["market_cap"] / (ebitda_val * 4), 2)
+            # revenue_growth (parse_ashare仅取1期, 无同比)
+            # profit_growth 同理
+            # PB: 不要用 price/equity 覆盖（equity是总股东权益不是每股净值）
+            # EastMoney的PB如果能拿到就用，拿不到就算了
+            if fd.get("pb") is None and fd.get("price") and fd.get("book_value_per_share") and fd["book_value_per_share"] > 0:
+                fd["pb"] = round(fd["price"] / fd["book_value_per_share"], 2)
+            
+            return fd
+        except Exception as e:
+            print(f"[fetch_ashare] {symbol}: {e}")
+            # fallback到akshare旧逻辑
+            pass
+
+    # ----- 1. 行情 -----
+
+    # ----- 1. 行情(美股: 腾讯API实时数据，westock+yfinance补充) -----
+    if prefix == "us":
+        try:
+            from us_stock_adapter import get_us_quote
+            usq = get_us_quote(sym)
+            if usq:
+                fd["_name"] = usq.get("_name") or usq.get("name_en", sym)
+                fd["price"] = usq.get("price") or fd.get("price")
+                fd["pe"] = usq.get("pe") or fd.get("pe")
+                fd["market_cap"] = usq.get("market_cap") or fd.get("market_cap")
+                if usq.get("high_52w"): fd["high_52w"] = usq["high_52w"]
+                if usq.get("low_52w"): fd["low_52w"] = usq["low_52w"]
+                if usq.get("change_pct"): fd["change_pct"] = usq["change_pct"]
+                if usq.get("currency"): fd["currency"] = usq["currency"]
+                if usq.get("sector"): fd["sector"] = usq["sector"]
+                if usq.get("beta"): fd["beta"] = usq["beta"]
+        except Exception as e:
+            print(f"[us_adapter] {symbol}: {e}")
+    
+    # ====== v9.0+: SEC EDGAR 作为美股主要财务数据源（优先级最高）======
+    # SEC EDGAR 是财报最权威原始源，完全免费、无Key、限10次/秒
+    # 放在westock之前，确保SEC数据优先；末尾的SEC覆盖层作为最终确认
+    if prefix == "us":
+        try:
+            from sec_edgar_adapter import parse_sec_financials
+            fd = parse_sec_financials(fd, sym)
+            rd = fd.get("report_date", "")
+            if rd and len(rd) >= 10:
+                from datetime import datetime
+                try:
+                    from us_stock_adapter import calc_us_fiscal_period
+                    fp = calc_us_fiscal_period(rd, sym)
+                    if fp:
+                        fd["_report_period"] = fp
+                    else:
+                        dt = datetime.strptime(rd[:10], "%Y-%m-%d")
+                        q = (dt.month - 1) // 3 + 1
+                        fd["_report_period"] = f"FY{dt.year%100}Q{q}"
+                except:
+                    pass
+                fd["_report_date"] = rd[:10]
+                fd["_data_source"] = "sec_edgar_v9.0_primary"
+        except Exception as e:
+            print(f"[sec_edgar_primary] {symbol}: {e}")
+    
+    # westock profile (补充名称+行业映射)
     md = westock(["profile", stock_code], 10)
     rows = parse_md_table(md)
     if rows:
@@ -781,6 +1002,34 @@ def fetch_live(symbol):
     # ⚠️ 警告: westock多期数据排列为[旧→新], rows[-1]=最新, rows[-5]=4季前
     if rows2:
         r = rows2[-1]  # 最新一期（rows[-1] = latest）
+        # 提取报告期
+        end_date = r.get("EndDate") or r.get("_date") or ""
+        if end_date:
+            fd["_report_date"] = str(end_date)[:10]
+            # v8.9: 美股使用财年计算，A股/港股使用自然季度
+            if prefix == "us":
+                try:
+                    from us_stock_adapter import calc_us_fiscal_period
+                    fp = calc_us_fiscal_period(fd["_report_date"], sym)
+                    if fp:
+                        fd["_report_period"] = fp
+                    else:
+                        # 回退到自然季度
+                        from datetime import datetime
+                        dt = datetime.strptime(fd["_report_date"] if len(fd["_report_date"])>=10 else "2000-01-01", "%Y-%m-%d")
+                        q = (dt.month - 1) // 3 + 1
+                        fd["_report_period"] = f"FY{dt.year%100}Q{q}"
+                except:
+                    fd["_report_period"] = fd["_report_date"]
+            else:
+                try:
+                    from datetime import datetime
+                    dt = datetime.strptime(fd["_report_date"] if len(fd["_report_date"])>=10 else "2000-01-01", "%Y-%m-%d")
+                    q = (dt.month - 1) // 3 + 1
+                    fy = dt.year
+                    fd["_report_period"] = f"FY{fy%100}Q{q}"
+                except:
+                    fd["_report_period"] = fd["_report_date"]
         rev = _fmt_num(r.get("Sales_Q"))
         if rev: fd["revenue"] = rev * 1e6
         ni = _fmt_num(r.get("NetIncome_Q"))
@@ -794,6 +1043,8 @@ def fetch_live(symbol):
         om_v = _fmt_num(r.get("OperatingMargin_Q"))
         if om_v is not None: fd["operating_margin"] = om_v / 100
         eps_v = _fmt_num(r.get("DilutedEPS_Q"))
+        if not eps_v:
+            eps_v = _fmt_num(r.get("BasicEPS_Q"))  # 备用字段
         if eps_v: fd["eps"] = eps_v
         ebit_v = _fmt_num(r.get("EBIT_Q"))
         if ebit_v: fd["ebit"] = ebit_v * 1e6
@@ -832,6 +1083,32 @@ def fetch_live(symbol):
             if nv is not None: multi.setdefault("net_margin", []).append(nv / 100)
             ev = _fmt_num(row.get("EBITDA_Q"))
             if ev: multi.setdefault("ebitda", []).append(ev * 1e6)
+
+        # v8.7: TTM EPS - 优先用westock提供的TTM字段(DilutedEPS不带_Q)，备胎求和4季度
+        r_latest = rows2[-1] if rows2 else None
+        if r_latest:
+            # 优先: TTM字段（不带_Q后缀）
+            ttm_eps = _fmt_num(r_latest.get("DilutedEPS"))
+            if ttm_eps and ttm_eps > 0:
+                fd["eps_ttm"] = round(ttm_eps, 4)
+            else:
+                # 备胎: 求和最近4期DilutedEPS_Q
+                ttm_eps = 0
+                ttm_count = 0
+                for row in rows2[-4:]:
+                    eps_q = _fmt_num(row.get("DilutedEPS_Q"))
+                    if not eps_q:
+                        eps_q = _fmt_num(row.get("BasicEPS_Q"))
+                    if eps_q and eps_q > 0:
+                        ttm_eps += eps_q
+                        ttm_count += 1
+                if ttm_count >= 4 and ttm_eps > 0:
+                    fd["eps_ttm"] = round(ttm_eps, 4)
+                elif ttm_count > 0:
+                    fd["eps_ttm"] = round(ttm_eps / ttm_count * 4, 4)
+            # 用TTM重算PE（覆盖westock单季PE）
+            if fd.get("eps_ttm") and fd.get("price"):
+                fd["pe"] = round(fd["price"] / fd["eps_ttm"], 2)
 
     # ----- 3. 资产负债表(8季度) -----
     md3 = westock(["finance", stock_code, "--type", "balance", "--num", "8"], 20)
@@ -910,6 +1187,83 @@ def fetch_live(symbol):
     # ====== 4.5 备用数据源: westock缺失时自动补数 ======
     _fetch_fallback(fd, stock_code, prefix, sym)
 
+    # ====== 4.6 v9.0: SEC EDGAR XBRL 实时财报覆盖（美股）======
+    # SEC EDGAR 是财报最权威原始源，完全免费、无Key、限10次/秒
+    if prefix == "us":
+        try:
+            from sec_edgar_adapter import parse_sec_financials
+            fd = parse_sec_financials(fd, sym)
+            
+            # 如果SEC有数据，报告日期已更新
+            rd = fd.get("report_date", "")
+            if rd and len(rd) >= 10:
+                from datetime import datetime
+                # 使用美股财年计算
+                try:
+                    from us_stock_adapter import calc_us_fiscal_period
+                    fp = calc_us_fiscal_period(rd, sym)
+                    if fp:
+                        fd["_report_period"] = fp
+                    else:
+                        dt = datetime.strptime(rd[:10], "%Y-%m-%d")
+                        q = (dt.month - 1) // 3 + 1
+                        fd["_report_period"] = f"FY{dt.year%100}Q{q}"
+                except:
+                    pass
+                fd["_report_date"] = rd[:10]
+                fd["_data_source"] = "sec_edgar_v9.0"
+            
+            # 用SEC的PE重算（如果腾讯API没拿到的话）
+            if not fd.get("pe") and fd.get("eps_ttm") and fd.get("price"):
+                fd["pe"] = round(fd["price"] / fd["eps_ttm"], 2)
+        except Exception as e:
+            print(f"[sec_edgar_overlay] {symbol}: {e}")
+
+    # ====== 4.7 v8.9: 美股yfinance覆盖（前瞻性代码）======
+    # 部署到其他服务器(如Render.com)后，若IP未被封禁则自动补新数据
+    if prefix == "us":
+        try:
+            from us_stock_adapter import parse_us_financials_timeout, calc_us_fiscal_period
+            parse_us_financials_timeout(fd, sym, timeout=25)
+            # 用yfinance的最新报告日期重算_report_period
+            rd = fd.get("report_date", "")
+            if rd and len(rd) >= 10:
+                from datetime import datetime
+                fp = calc_us_fiscal_period(rd, sym)
+                if fp:
+                    fd["_report_period"] = fp
+                    fd["_report_date"] = rd[:10]
+                    fd["_yf_overlay"] = True
+                else:
+                    try:
+                        dt = datetime.strptime(rd[:10], "%Y-%m-%d")
+                        q = (dt.month - 1) // 3 + 1
+                        fd["_report_period"] = f"FY{dt.year%100}Q{q}"
+                        fd["_yf_overlay"] = True
+                    except:
+                        pass
+        except Exception as e:
+            print(f"[yf_overlay_us] {symbol}: {e}")
+
+    # ====== v9.0+: SEC EDGAR 最终覆盖（使用模块级导入，确保执行）======
+    if prefix == "us" and _SEC_AVAILABLE:
+        try:
+            fd = parse_sec_financials(fd, sym)
+            rd = fd.get("report_date", "")
+            if rd and len(rd) >= 10:
+                from datetime import datetime
+                fp = calc_us_fiscal_period(rd, sym)
+                if fp:
+                    fd["_report_period"] = fp
+                else:
+                    dt = datetime.strptime(rd[:10], "%Y-%m-%d")
+                    q = (dt.month - 1) // 3 + 1
+                    fd["_report_period"] = f"FY{dt.year%100}Q{q}"
+                fd["_report_date"] = rd[:10]
+                fd["_data_source"] = "sec_edgar_v9.0_final"
+        except Exception as e:
+            print(f"[sec_final] {symbol}: {e}")
+
     # ----- 5. 衍生计算 -----
     # PS (市销率) - 如果westock没返回，用手上的市值/营收算
     if not fd.get("ps") or fd.get("ps") == 0:
@@ -934,8 +1288,15 @@ def fetch_live(symbol):
     if fd.get("pb") is None and price > 0 and fd.get("book_value_per_share") and fd["book_value_per_share"] > 0:
         fd["pb"] = round(price / fd["book_value_per_share"], 1)
     # PE = price / eps (quarterly EPS)
-    if fd.get("pe") is None and price > 0 and fd.get("eps") and fd["eps"] > 0:
+    if fd.get("pe") is None and price > 0 and fd.get("eps"):
         fd["pe"] = round(price / fd["eps"], 1)
+    # 如果eps缺失但price和net_income都有,用equity/BPS反推股数再算eps
+    if fd.get("eps") is None and price > 0 and fd.get("net_income") and fd.get("equity") and fd.get("book_value_per_share"):
+        est_shares = fd["equity"] / fd["book_value_per_share"]
+        if est_shares > 0:
+            fd["eps"] = fd["net_income"] / est_shares
+            if fd.get("pe") is None:
+                fd["pe"] = round(price / fd["eps"], 1)
     # 市值 = price * (equity / BPS)
     if fd.get("market_cap") is None and price > 0 and fd.get("book_value_per_share") and fd["book_value_per_share"] > 0 and fd.get("equity") and fd["equity"] > 0:
         est_shares = fd["equity"] / fd["book_value_per_share"]
@@ -1161,6 +1522,20 @@ def fetch_live(symbol):
     # ====== 13. 数据质量验证 ======
     fd["_data_quality"] = validate_data(fd)
     
+    # ====== v9.0+: 最终_report_period强制覆盖（防止前面被westock/yfinance覆盖）======
+    if prefix == "us":
+        for _src_date in [fd.get("report_date"), fd.get("_report_date")]:
+            if _src_date and len(str(_src_date)) >= 10:
+                try:
+                    from datetime import datetime as _dt
+                    from us_stock_adapter import calc_us_fiscal_period as _cfp
+                    _fp = _cfp(str(_src_date)[:10], sym)
+                    if _fp:
+                        fd["_report_period"] = _fp
+                        break
+                except:
+                    continue
+    
     return fd
 
 # ====== 数据质量验证系统 ======
@@ -1332,9 +1707,73 @@ def validate_data(fd):
     }
 
 # ====== API路由 ======
+
+@app.route("/api/debug/sec")
+def debug_sec():
+    """SEC EDGAR 调试端点 - 诊断适配器是否正常工作"""
+    sym = request.args.get("sym", "AAPL").upper()
+    info = {
+        "symbol": sym,
+        "DATA_DIR": DATA_DIR,
+        "quant_tool_dir": os.path.join(DATA_DIR, "quant_tool"),
+        "isdir": os.path.isdir(os.path.join(DATA_DIR, "quant_tool")),
+        "sys.path": [p for p in sys.path if "quant" in p.lower()],
+    }
+    try:
+        from sec_edgar_adapter import parse_sec_financials, load_cik_map, get_cik
+        info["adapter_import"] = "OK"
+        
+        # Step 1: Load CIK map
+        info["step1_cik_map"] = "loading..."
+        cik_map = load_cik_map()
+        info["step1_cik_map"] = f"OK ({len(cik_map)} entries)"
+        info["cik_count"] = len(cik_map)
+        
+        # Step 2: Get CIK for symbol
+        info["step2_get_cik"] = "looking up..."
+        cik = get_cik(sym)
+        info["step2_get_cik"] = cik if cik else "NOT FOUND"
+        if not cik:
+            # Try to find MU in map
+            mu_cik = cik_map.get("MU")
+            info["mu_in_map"] = mu_cik
+            return jsonify({"status": "error", "info": info})
+        
+        # Step 3: Fetch facts
+        info["step3_fetch_facts"] = "fetching..."
+        fd = {}
+        fd = parse_sec_financials(fd, sym)
+        info["step3_fetch_facts"] = "OK"
+        
+        # Results
+        info["result"] = {
+            "revenue": fd.get("revenue"),
+            "net_income": fd.get("net_income"),
+            "eps": fd.get("eps"),
+            "report_date": fd.get("report_date"),
+            "data_source": fd.get("_data_source_sec", False),
+        }
+        return jsonify({"status": "ok", "info": info})
+    except Exception as e:
+        import traceback
+        info["error"] = str(e)
+        info["traceback"] = traceback.format_exc()
+        return jsonify({"status": "error", "info": info})
+
 @app.route("/api/stock/<symbol>")
 def stock(symbol):
     sym = symbol.upper()
+    
+    # 速率限制 (v9.0+)
+    if request.remote_addr not in LOCAL_IPS and not _rl_check(request.remote_addr):
+        return jsonify({"status": "error", "msg": "请求过于频繁，每分钟限制60次，请稍后再试"}), 429
+    
+    # 内存缓存 (v9.0+): 5分钟有效
+    cache_key = f"stock:{sym}"
+    cached = _cache_get(cache_key)
+    if cached:
+        return jsonify(cached)
+    
     fd = fetch_live(sym)
     # 放宽检查: 有备用数据源(price/revenue/pe任一)即可, 不要求全部
     if not fd:
@@ -1347,7 +1786,7 @@ def stock(symbol):
     name = fd.get("_name", sym)
     sector = fd.get("sector", "general")
     result = {"name": name, "symbol": sym, "sector": sector,
-              "finance_source": "westock v7.3", "version": "v7.3"}
+              "finance_source": "westock v8.6", "version": "v8.6"}
 
     today_fields = [("price","股价"),("pe","PE"),("pe_forward","Forward PE"),
                     ("market_cap","市值"),("pb","PB"),("ps","PS"),("dividend_yield","股息率"),
@@ -1368,7 +1807,9 @@ def stock(symbol):
                   "beta":"Beta系数","ev_ebitda":"EV/EBITDA"}
     for k, label in fin_fields.items():
         if fd.get(k) is not None:
-            result[k] = {"v": fd[k], "label": label, "date": "最新", "period": "财报"}
+            result[k] = {"v": fd[k], "label": label, 
+                         "date": fd.get("_report_period") or fd.get("_report_date") or "最新", 
+                         "period": "财报"}
 
     # 新系统数据
     if fd.get("percentiles"):
@@ -1388,11 +1829,13 @@ def stock(symbol):
     if fd.get("_data_quality"):
         result["data_quality"] = {"v": fd["_data_quality"], "label": "数据质量", "period": "验证"}
     
-    return jsonify({"status": "ok", "data": result})
+    resp = {"status": "ok", "data": result}
+    _cache_set(cache_key, resp, CACHE_TTL["stock"])
+    return jsonify(resp)
 
 @app.route("/api/health")
 def health():
-    return jsonify({"status": "ok", "version": "v7.3"})
+    return jsonify({"status": "ok", "version": "v8.6"})
 
 # ====== 产业链知识库 ======
 CHAINS_FILE = os.path.join(WORKSPACE, "industry_chains.json")
@@ -1409,18 +1852,43 @@ def _save_json(path, data):
     with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
-@app.route("/api/chains")
-def get_chains():
-    """返回所有产业链"""
+# (v8.3: get_chains_v83 替代此路由，见文件末尾)
+# @app.route("/api/chains")
+def get_chains_legacy():
+    """返回所有产业链（含评分排序 + 动态热度）"""
     chains = _load_json(CHAINS_FILE, {})
-    # 只返回概要（不含完整公司列表，前端按需加载）
+    heat_data = _load_json(os.path.join(WORKSPACE, "chain_heat.json"), {})
+    heat_chains = heat_data.get("chains", {})
     summary = {}
+    
     for cid, c in chains.get("chains", {}).items():
         node_count = len(c.get("nodes", {}))
         total_companies = set()
+        edge_count = 0
+        bottlenecks = 0
         for nid, n in c.get("nodes", {}).items():
             for co in n.get("companies", []):
                 total_companies.add(co)
+            if n.get("bottleneck"):
+                bottlenecks += 1
+            edge_count += len(n.get("upstream", [])) + len(n.get("downstream", []))
+        
+        # 静态结构分（60分基准）
+        structural_score = min(60, int(node_count * 3 + len(total_companies) * 2 + edge_count * 1 + bottlenecks * 5))
+        
+        # 动态热度分（40分基准，基于近7天新闻量）
+        hc = heat_chains.get(cid, {})
+        recent_counts = [d["count"] for d in hc.get("daily_counts", [])[-7:]]
+        total_news_7d = sum(recent_counts) if recent_counts else 0
+        heat_score = min(40, total_news_7d * 3)
+        
+        # 趋势方向
+        net_scores = [d["net"] for d in hc.get("net_scores", [])[-7:] if d.get("net") is not None]
+        avg_net = sum(net_scores) / len(net_scores) if net_scores else 0
+        trend = "rising" if avg_net > 1 else "falling" if avg_net < -1 else "stable"
+        
+        chain_score = structural_score + heat_score
+        
         summary[cid] = {
             "name": c.get("name", cid),
             "market": c.get("market", "US"),
@@ -1428,9 +1896,17 @@ def get_chains():
             "keywords": c.get("keywords", [])[:5],
             "node_count": node_count,
             "company_count": len(total_companies),
-            "bottleneck_nodes": sum(1 for n in c.get("nodes", {}).values() if n.get("bottleneck"))
+            "bottleneck_nodes": bottlenecks,
+            "edge_count": edge_count,
+            "structural_score": structural_score,
+            "heat_score": heat_score,
+            "chain_score": chain_score,
+            "trend": trend,
+            "recent_news_7d": total_news_7d
         }
-    return jsonify({"status": "ok", "data": summary})
+    
+    sorted_summary = dict(sorted(summary.items(), key=lambda x: -x[1]["chain_score"]))
+    return jsonify({"status": "ok", "data": sorted_summary})
 
 @app.route("/api/chains/<chain_id>")
 def get_chain_detail(chain_id):
@@ -1763,6 +2239,315 @@ def serve(path="quant.html"):
     resp.headers["Expires"] = "0"
     return resp
 
+# ====== v8.0 产业传播引擎 ======
+# 三层结构: 实体识别 → 方向分类 → 关系传播
+import re as _re
+
+DEFAULT_IMPACT_PROFILE = {
+    "demand_up": {"self": 1.0, "upstream": 0.8, "downstream": 0.3},
+    "demand_down": {"self": -1.0, "upstream": -0.4, "downstream": -0.7},
+    "supply_up": {"self": 0.6, "upstream": 0.8, "downstream": 0.2},
+    "supply_down": {"self": -1.0, "upstream": 0.4, "downstream": -0.8}
+}
+
+def load_chains_full():
+    """加载完整产业链数据（含nodes关系图）"""
+    chains_file = os.path.join(WORKSPACE, "industry_chains.json")
+    return _load_json(chains_file, {}).get("chains", {})
+
+def _kw_hit(text, kw):
+    """关键词匹配（英文ticker加边界识别）"""
+    if _re.fullmatch(r"[A-Za-z.]{1,7}", kw):
+        return _re.search(rf"\b{_re.escape(kw)}\b", text, _re.I) is not None
+    return kw.lower() in text.lower()
+
+def entity_extract(news_text, chain):
+    """从新闻中提取命中的产业链节点"""
+    hits = []
+    text = news_text.lower()
+    for nid, node in chain.get("nodes", {}).items():
+        for kw in node.get("keywords", []):
+            if _kw_hit(text, kw):
+                hits.append(nid)
+                break
+    return hits
+
+def classify_direction(news_text):
+    """识别新闻影响方向（多方向输出，支持复合新闻）"""
+    text = news_text.lower()
+    demand_up = ["增长","订单","扩产","投资","increase","growth","order",
+                 "expand","launch","推出","供不应求","紧缺","产能不足","surge","soar","boom"]
+    demand_down = ["下滑","下降","减少","裁员","decline","drop","layoff",
+                   "库存积压","过剩","需求疲软","slump","plunge","slowdown"]
+    supply_up = ["建厂","capex","资本开支","扩建","新工厂","新产线",
+                 "fab","fabrication","build","construction","capacity expansion"]
+    supply_down = ["停产","断供","制裁","罢工","strike","shortage","短缺",
+                   "shutdown","halt","suspend"]
+    # 否定/转折词（中英文）
+    negators = ["未","不","没有","不及预期","放缓","低于预期","下降趋势",
+                "not","no","below","fewer","less","underperform","missed","failed"]
+    
+    evidence = []
+    directions = []
+    
+    # 需求方向（互斥：up和down同时出现时，用分数高的）
+    matched_du = [w for w in demand_up if w in text]
+    matched_dd = [w for w in demand_down if w in text]
+    matched_su = [w for w in supply_up if w in text]
+    matched_sd = [w for w in supply_down if w in text]
+    
+    # 否定词检测：如果在词汇附近有否定词，反转方向
+    def is_negated(word):
+        for neg in negators:
+            if neg in text:
+                idx = text.find(neg)
+                word_idx = text.find(word)
+                if word_idx >= 0 and abs(word_idx - idx) < 20:
+                    return True
+        return False
+    
+    # 需求方向
+    net_demand = 0
+    for w in matched_du: 
+        if not is_negated(w): net_demand += 2; evidence.append(w)
+    for w in matched_dd: 
+        if not is_negated(w): net_demand -= 2; evidence.append(w)
+    
+    if net_demand >= 2: directions.append("demand_up")
+    elif net_demand <= -2: directions.append("demand_down")
+    
+    # 供给方向（独立于需求）
+    net_supply = 0
+    for w in matched_su:
+        if not is_negated(w): net_supply += 1; evidence.append(w)
+    for w in matched_sd:
+        if not is_negated(w): net_supply -= 1; evidence.append(w)
+    
+    if net_supply >= 1: directions.append("supply_up")
+    elif net_supply <= -1: directions.append("supply_down")
+    
+    if not directions:
+        directions = ["neutral"]
+    
+    total_score = abs(net_demand) + abs(net_supply)
+    confidence = min(total_score / 6.0, 1.0)
+    
+    # 构建结构化的 logic_path 所需信息
+    direction_labels = {
+        "demand_up": "需求上升", "demand_down": "需求下降",
+        "supply_up": "供给扩张", "supply_down": "供给收缩"
+    }
+    
+    return {
+        "directions": directions,
+        "primary": directions[0] if directions[0] != "neutral" else "neutral",
+        "confidence": round(confidence, 2),
+        "evidence": evidence[:5],
+        "direction_labels": [direction_labels.get(d, d) for d in directions if d != "neutral"]
+    }
+
+def propagate_multi(chain, start_nodes, directions, max_depth=2):
+    """
+    多方向传播算法
+    支持复合方向（如 demand_up + supply_up 同时传播再叠加）
+    从命中节点出发，沿upstream/downstream传播
+    """
+    aggregate = {}
+    
+    def dfs(nid, depth, weight, path, direction, profile):
+        if depth > max_depth:
+            return
+        if nid not in chain.get("nodes", {}):
+            return
+        if nid in path:
+            return
+        node = chain["nodes"][nid]
+        new_path = path | {nid}
+        
+        self_w = profile.get("self", 0)
+        if self_w == 0:
+            return
+        
+        score = weight * self_w * node.get("sensitivity", 1.0) * node.get("bottleneck_weight", 1.0)
+        
+        for comp in node.get("companies", []):
+            aggregate[comp] = round(aggregate.get(comp, 0) + score, 4)
+        
+        for nxt in node.get("downstream", []):
+            dfs(nxt, depth + 1, score * profile.get("downstream", 0.3), new_path, direction, profile)
+        for nxt in node.get("upstream", []):
+            dfs(nxt, depth + 1, score * profile.get("upstream", 0.8), new_path, direction, profile)
+    
+    for direction in directions:
+        if direction == "neutral":
+            continue
+        profile = chain.get("impact_profile", {}).get(direction, DEFAULT_IMPACT_PROFILE.get(direction, {}))
+        if not profile.get("self"):
+            profile = DEFAULT_IMPACT_PROFILE.get(direction, {})
+        for nid in start_nodes:
+            dfs(nid, 0, 1.0, set(), direction, profile)
+    
+    return dict(sorted(aggregate.items(), key=lambda x: -x[1]))
+
+def get_max_depth(chain):
+    """根据链规模动态调整传播深度"""
+    nc = len(chain.get("nodes", {}))
+    if nc >= 10: return 3
+    elif nc >= 5: return 2
+    return 1
+
+DEPTH_DECAY = [1.0, 0.6, 0.35, 0.18]
+
+def propagate_full_multi(chain, start_nodes, directions, max_depth=None):
+    """
+    多方向完整传播（impact_matrix.total = impact_scores 数学一致）
+    score = weight × self_w × sensitivity × bottleneck_weight  (含瓶颈放大)
+    matrix拆解:
+      demand_part     = weight × self_w × sensitivity           (无瓶颈)
+      bottleneck_part = demand_part × (bottleneck_weight - 1)   (仅瓶颈放大倍数)
+      sentiment_part  = demand_part × sentiment_coef
+      total = demand + bottleneck + sentiment = score           (数学一致)
+    """
+    if max_depth is None:
+        max_depth = get_max_depth(chain)
+    impact_scores = {}
+    matrix = {}
+    propagation_paths = []
+    
+    def add_mx(comp, dim, val):
+        if comp not in matrix:
+            matrix[comp] = {"demand":0,"supply":0,"bottleneck":0,"sentiment":0,"total":0}
+        matrix[comp][dim] = round(matrix[comp].get(dim,0) + val, 4)
+    
+    def dfs(nid, depth, weight, path, direction, profile, path_chain):
+        if depth > max_depth:
+            return
+        if nid not in chain.get("nodes", {}):
+            return
+        if nid in path:
+            return
+        node = chain["nodes"][nid]
+        new_path = path | {nid}
+        
+        self_w = profile.get("self", 0)
+        if self_w == 0:
+            return
+        
+        sens = node.get("sensitivity", 1.0)
+        bw = node.get("bottleneck_weight", 1.0)
+        
+        # 拆解 score: demand_part + bottleneck_part + sentiment_part
+        demand_part = weight * self_w * sens
+        bottleneck_part = demand_part * (bw - 1)  # 仅瓶颈引发的额外放大
+        depth_dec = DEPTH_DECAY[depth] if depth < len(DEPTH_DECAY) else 0.1
+        sentiment_part = demand_part * 0.05 * depth_dec  # 情感贡献，随深度衰减
+        
+        score = demand_part + bottleneck_part + sentiment_part
+        
+        sign = 1 if direction in ("demand_up", "supply_up") else -1
+        
+        for comp in node.get("companies", []):
+            impact_scores[comp] = round(impact_scores.get(comp, 0) + score, 4)
+            add_mx(comp, "demand", demand_part)
+            add_mx(comp, "bottleneck", sign * bottleneck_part)
+            add_mx(comp, "sentiment", sentiment_part * (1 if direction in ("demand_up","supply_up") else -1))
+        
+        current_path = path_chain + [{
+            "node": nid, "name": node.get("name", nid),
+            "companies": node.get("companies", []),
+            "depth": depth, "direction": direction,
+            "score": round(score, 4)
+        }]
+        propagation_paths.append(current_path)
+        
+        decay = profile.get("upstream", 0.8) if "up" in direction else profile.get("downstream", -0.7)
+        for nxt in node.get("downstream", []):
+            dfs(nxt, depth + 1, score * profile.get("downstream", 0.3), new_path, direction, profile, current_path)
+        for nxt in node.get("upstream", []):
+            dfs(nxt, depth + 1, score * profile.get("upstream", 0.8), new_path, direction, profile, current_path)
+    
+    for direction in directions:
+        if direction == "neutral":
+            continue
+        profile = chain.get("impact_profile", {}).get(direction, DEFAULT_IMPACT_PROFILE.get(direction, {}))
+        if not profile.get("self"):
+            profile = DEFAULT_IMPACT_PROFILE.get(direction, {})
+        for nid in start_nodes:
+            dfs(nid, 0, 1.0, set(), direction, profile, [])
+    
+    for comp in matrix:
+        matrix[comp]["total"] = round(impact_scores.get(comp, 0), 4)
+    
+    # 计算传播置信度
+    path_conf_map = {}
+    for comp in impact_scores:
+        depth = 0
+        for p in propagation_paths:
+            for step in p:
+                if comp in step.get("companies", []):
+                    depth = step["depth"]
+                    break
+        path_conf_map[comp] = round(0.85 * (0.7 ** depth), 2)
+    
+    # 路径排序取Top3
+    propagation_paths.sort(key=lambda p: -(p[-1]["score"] if p else 0))
+    top_paths = propagation_paths[:3]
+    
+    direction_labels = {"demand_up":"需求上升","demand_down":"需求下降",
+                        "supply_up":"供给扩张","supply_down":"供给收缩"}
+    logic_path = {
+        "trigger_nodes": start_nodes,
+        "trigger_names": [chain.get("nodes",{}).get(n,{}).get("name",n) for n in start_nodes],
+        "directions": directions,
+        "direction_labels": [direction_labels.get(d,d) for d in directions if d != "neutral"],
+        "summary": f"{' '.join(direction_labels.get(d,'') for d in directions if d!='neutral')} → 影响 {len(impact_scores)} 家公司",
+        "path_confidence": dict(sorted(path_conf_map.items(), key=lambda x: -x[1])),
+        "top_paths": [
+            {
+                "nodes": [p["name"] for p in path],
+                "companies": list(set(c for p in path for c in p.get("companies",[]))),
+                "max_depth": max(p["depth"] for p in path),
+                "direction": path[0]["direction"] if path else "",
+                "total_score": round(sum(p["score"] for p in path), 4)
+            }
+            for path in top_paths
+        ]
+    }
+    
+    return {
+        "impact_scores": dict(sorted(impact_scores.items(), key=lambda x: -x[1])),
+        "impact_matrix": dict(sorted(matrix.items(), key=lambda x: -x[1]["total"])),
+        "logic_path": logic_path
+    }
+
+def time_decay(article_time_str, half_life_days=3, default_age_days=3):
+    """时间衰减: 越新的新闻权重越高"""
+    if not article_time_str or article_time_str in ("nan", "", "None"):
+        return 0.5 ** (default_age_days / half_life_days)
+    try:
+        from datetime import datetime, timezone
+        pub_time = datetime.fromisoformat(article_time_str.replace("Z","+00:00").split(".")[0])
+        now = datetime.now(timezone.utc)
+        if pub_time.tzinfo is None:
+            pub_time = pub_time.replace(tzinfo=timezone.utc)
+        days_old = abs((now - pub_time).total_seconds() / 86400)
+        return max(0.1, 0.5 ** (days_old / half_life_days))
+    except:
+        return 0.5 ** (default_age_days / half_life_days)
+
+def time_propagation(impact_score):
+    """时间维度推导: 需求→收入→利润→估值"""
+    rev_sens = 0.6
+    ear_sens = 0.4
+    pe_sens = 0.3
+    return {
+        "3m_revenue": round(impact_score * rev_sens, 4),
+        "6m_earnings": round(impact_score * rev_sens * ear_sens, 4),
+        "12m_valuation": round(impact_score * rev_sens * ear_sens * pe_sens, 4)
+    }
+
+# ====== 新闻扫描 & 语义分析 API ======
+
 # ====== 新闻扫描 & 语义分析 API ======
 
 def _fetch_news(keywords, max_results=50):
@@ -1805,6 +2590,109 @@ def _fetch_news(keywords, max_results=50):
             print(f"[news] baidu: {e}")
     
     return articles[:max_results]
+
+# ====== v8.1 Phase 4+ 高级功能 ======
+
+def update_chain_heat(propagation_results):
+    """更新链新闻热度缓存"""
+    heat_file = os.path.join(WORKSPACE, "chain_heat.json")
+    heat = _load_json(heat_file, {"history": [], "chains": {}})
+    now = __import__("time").strftime("%Y-%m-%d")
+    
+    for cid, prop in propagation_results.items():
+        news_count = len(prop.get("events", []))
+        net = prop.get("net_score", 0)
+        if cid not in heat["chains"]:
+            heat["chains"][cid] = {"daily_counts": [], "net_scores": []}
+        heat["chains"][cid]["daily_counts"].append({"date": now, "count": news_count})
+        heat["chains"][cid]["net_scores"].append({"date": now, "net": net})
+    
+    # 保留最近30天
+    for cid in heat["chains"]:
+        heat["chains"][cid]["daily_counts"] = heat["chains"][cid]["daily_counts"][-30:]
+        heat["chains"][cid]["net_scores"] = heat["chains"][cid]["net_scores"][-30:]
+    
+    heat["last_updated"] = now
+    _save_json(heat_file, heat)
+
+def detect_resonance(propagation_results):
+    """跨链共振检测：同一公司在多条链都获得正分"""
+    from collections import defaultdict
+    company_chains = defaultdict(list)
+    for cid, prop in propagation_results.items():
+        for comp, score in prop.get("positive", {}).items():
+            company_chains[comp].append({"chain": cid, "score": score})
+    
+    resonance = {}
+    for comp, chains in company_chains.items():
+        if len(chains) >= 2:
+            resonance[comp] = {
+                "chains": chains,
+                "total_score": round(sum(c["score"] for c in chains), 4),
+                "chain_count": len(chains)
+            }
+    return dict(sorted(resonance.items(), key=lambda x: -x[1]["total_score"]))
+
+def compute_rotation(propagation_results):
+    """行业轮动信号：基于各链净倾向"""
+    rotation = []
+    for cid, prop in propagation_results.items():
+        net = prop.get("net_score", 0)
+        positivity = "rising" if net > 0 else "falling" if net < 0 else "neutral"
+        rotation.append({
+            "chain_id": cid,
+            "chain_name": cid,
+            "net_score": round(net, 4),
+            "trend": positivity,
+            "event_count": len(prop.get("events", []))
+        })
+    rotation.sort(key=lambda x: -x["net_score"])
+    return rotation
+
+def auto_discover_chains(articles, existing_chains):
+    """自动发现候选产业链（共现聚类）"""
+    from collections import defaultdict
+    import itertools
+    
+    stock_list = set()
+    for chain in existing_chains.values():
+        for n in chain.get("nodes", {}).values():
+            for c in n.get("companies", []):
+                stock_list.add(c.upper())
+    
+    co_matrix = defaultdict(int)
+    for art in articles:
+        text = (art.get("title", "") + " " + art.get("content", "")).upper()
+        mentioned = [s for s in stock_list if s in text]
+        for a, b in itertools.combinations(mentioned, 2):
+            key = tuple(sorted([a, b]))
+            co_matrix[key] += 1
+    
+    # 简单聚类：强共现对 → 候选链
+    from collections import defaultdict as dd
+    clusters = dd(set)
+    for (a, b), weight in co_matrix.items():
+        if weight >= 2:
+            clusters[a].add(b)
+            clusters[b].add(a)
+    
+    candidates = []
+    for seed, neighbors in clusters.items():
+        if len(neighbors) >= 3:
+            group = {seed} | neighbors
+            exists = any(
+                seed in [c for n in ch.get("nodes",{}).values() for c in n.get("companies",[])]
+                for ch in existing_chains.values()
+            )
+            if not exists:
+                candidates.append({
+                    "seed_stock": seed,
+                    "related": list(neighbors)[:5],
+                    "size": len(group),
+                    "status": "candidate"
+                })
+    
+    return candidates[:5]
 
 def _match_articles(articles, chain_keywords, chain_info, all_chains=None):
     """将新闻匹配到产业链 → 挖掘潜在机会（非周期推导）"""
@@ -1910,10 +2798,22 @@ def new_theme_matches(themes, keywords):
     return any(t["keyword"].lower() in kw.lower() or kw.lower() in t["keyword"].lower() 
               for t in themes for kw in keywords)
 
-@app.route("/api/news/scan")
+# --- news_scan v8.0 (原始版本，被 news_scan_v83 覆盖) ---
+# 路由注册已移至 news_scan_v83，此函数仅保留作为引用
 def news_scan():
     """全市场新闻扫描 + 产业链匹配"""
+    # 速率限制 (v9.0+)
+    if request.remote_addr not in LOCAL_IPS and not _rl_check(request.remote_addr):
+        return jsonify({"status": "error", "msg": "请求过于频繁，请稍后再试"}), 429
+    
     chain_id = request.args.get("chain_id", "")
+    
+    # 内存缓存 (v9.0+): 30分钟有效
+    cache_key = f"news:{chain_id or 'all'}"
+    cached = _cache_get(cache_key)
+    if cached:
+        return jsonify(cached)
+    
     chains = _load_json(CHAINS_FILE, {}).get("chains", {})
     
     if chain_id:
@@ -1936,17 +2836,627 @@ def news_scan():
     # 匹配分析
     results = _match_articles(articles, chain_keywords, target)
     
+    # ===== v8.0 传播引擎：实体识别→方向分类→传播推导（直接对所有链做实体识别）=====
+    full_chains = load_chains_full()
+    propagation_results = {}
+    for art in articles[:20]:
+        text = art.get("title", "") + " " + art.get("content", "")
+        art_time = art.get("time", "")
+        decay = time_decay(art_time)
+        
+        for cid, chain in full_chains.items():
+            if not chain.get("nodes"):
+                continue
+            entities = entity_extract(text, chain)
+            if not entities:
+                continue
+            dc = classify_direction(text)
+            if dc["primary"] == "neutral":
+                continue
+            
+            prop = propagate_full_multi(chain, entities, dc["directions"])
+            impact = prop["impact_scores"]
+            breakdown = prop["impact_matrix"]
+            logic_path = prop["logic_path"]
+            
+            time_proj = {}
+            for comp, score in list(impact.items())[:3]:
+                time_proj[comp] = time_propagation(score)
+            
+            if cid not in propagation_results:
+                propagation_results[cid] = {"events": [], "aggregate_scores": {}}
+            
+            positive = {k:v for k,v in impact.items() if v > 0}
+            negative = {k:v for k,v in impact.items() if v < 0}
+            
+            propagation_results[cid]["events"].append({
+                "article_title": art.get("title", "")[:80],
+                "directions": dc["directions"],
+                "direction_labels": dc.get("direction_labels", []),
+                "direction_confidence": dc["confidence"],
+                "direction_evidence": dc["evidence"],
+                "entity_nodes": entities,
+                "impact_scores": dict(list(impact.items())[:5]),
+                "positive_scores": dict(list(positive.items())[:5]),
+                "negative_scores": dict(list(negative.items())[:5]),
+                "impact_matrix": breakdown,
+                "time_projection": time_proj,
+                "logic_path": logic_path
+            })
+            for comp, score in impact.items():
+                propagation_results[cid]["aggregate_scores"][comp] = round(
+                    propagation_results[cid]["aggregate_scores"].get(comp, 0) + score * decay, 4
+                )
+    
+    # 聚合后计算正负和净倾向
+    for cid in propagation_results:
+        agg = propagation_results[cid]["aggregate_scores"]
+        propagation_results[cid]["aggregate_scores"] = dict(sorted(agg.items(), key=lambda x: -abs(x[1])))
+        propagation_results[cid]["positive"] = dict(sorted(
+            {k:v for k,v in agg.items() if v > 0}.items(), key=lambda x: -x[1]))
+        propagation_results[cid]["negative"] = dict(sorted(
+            {k:v for k,v in agg.items() if v < 0}.items(), key=lambda x: x[1]))
+        net = sum(agg.values())
+        propagation_results[cid]["net_sentiment"] = "bullish" if net > 0 else "bearish" if net < 0 else "neutral"
+        propagation_results[cid]["net_score"] = round(net, 4)
+    
+    results["propagation"] = propagation_results
+    
+    # ===== Phase 4+ 高级功能：热度更新 + 共振 + 轮动 + 自动发现 =====
+    update_chain_heat(propagation_results)
+    
+    results["resonance"] = detect_resonance(propagation_results)
+    
+    results["rotation"] = compute_rotation(propagation_results)
+    
+    results["candidate_chains"] = auto_discover_chains(articles, full_chains)
+    
     # 保存到文件（供Tab3上半部分引用）
     news_file = os.path.join(WORKSPACE, "news_cache.json")
     try:
         cache = _load_json(news_file, {})
-        cache["last_scan"] = time.strftime("%Y-%m-%d %H:%M")
+        cache["last_scan"] = _time.strftime("%Y-%m-%d %H:%M")
         cache["results"] = results
         _save_json(news_file, cache)
     except:
         pass
     
-    return jsonify({"status": "ok", "data": results})
+    resp = {"status": "ok", "data": results}
+    _cache_set(cache_key, resp, CACHE_TTL["news"])
+    return jsonify(resp)
+
+# ====== v8.3 历史快照数据库 (SQLite) ======
+import sqlite3, datetime
+
+SNAPSHOT_DB = os.path.join(WORKSPACE, "snapshots.db")
+
+def _init_snapshot_db():
+    """初始化快照数据库"""
+    try:
+        conn = sqlite3.connect(SNAPSHOT_DB)
+        c = conn.cursor()
+        c.execute("""
+            CREATE TABLE IF NOT EXISTS snapshots (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                date TEXT NOT NULL,
+                chain_id TEXT NOT NULL,
+                company TEXT NOT NULL,
+                score REAL DEFAULT 0,
+                direction TEXT DEFAULT '',
+                rank INTEGER DEFAULT 0,
+                metadata TEXT DEFAULT '{}',
+                UNIQUE(date, chain_id, company)
+            )
+        """)
+        c.execute("""
+            CREATE INDEX IF NOT EXISTS idx_snapshots_date ON snapshots(date)
+        """)
+        c.execute("""
+            CREATE INDEX IF NOT EXISTS idx_snapshots_company ON snapshots(company)
+        """)
+        conn.commit()
+        conn.close()
+        return True
+    except Exception as e:
+        print(f"[snapshot_db] init error: {e}")
+        return False
+
+def save_snapshot(date_str, chain_id, company, score, direction, rank=0, metadata=None):
+    """保存单条快照"""
+    try:
+        conn = sqlite3.connect(SNAPSHOT_DB)
+        c = conn.cursor()
+        c.execute("""
+            INSERT OR REPLACE INTO snapshots (date, chain_id, company, score, direction, rank, metadata)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, (date_str, chain_id, company, round(score, 4), direction, rank,
+              json.dumps(metadata or {}, ensure_ascii=False)))
+        conn.commit()
+        conn.close()
+        return True
+    except Exception as e:
+        print(f"[snapshot] save error: {e}")
+        return False
+
+def save_scan_snapshot(propagation_results):
+    """将一次新闻扫描结果存入快照数据库"""
+    now = datetime.datetime.now().strftime("%Y-%m-%d")
+    _init_snapshot_db()
+    count = 0
+    for cid, prop in propagation_results.items():
+        agg = prop.get("aggregate_scores", {})
+        for rank, (comp, score) in enumerate(sorted(agg.items(), key=lambda x: -abs(x[1])), 1):
+            if rank > 30:  # 每链最多存30只
+                break
+            direction = "pos" if score > 0 else "neg" if score < 0 else "neu"
+            meta = {
+                "net_sentiment": prop.get("net_sentiment", ""),
+                "event_count": len(prop.get("events", [])),
+                "chain_net_score": prop.get("net_score", 0)
+            }
+            save_snapshot(now, cid, comp, score, direction, rank, meta)
+            count += 1
+    return count
+
+def query_snapshots(company=None, chain_id=None, days=30, limit=200):
+    """查询快照历史"""
+    _init_snapshot_db()
+    try:
+        conn = sqlite3.connect(SNAPSHOT_DB)
+        conn.row_factory = sqlite3.Row
+        c = conn.cursor()
+        where = []
+        params = []
+        if company:
+            where.append("company = ?")
+            params.append(company.upper())
+        if chain_id:
+            where.append("chain_id = ?")
+            params.append(chain_id)
+        # 日期范围
+        since = (datetime.datetime.now() - datetime.timedelta(days=days)).strftime("%Y-%m-%d")
+        where.append("date >= ?")
+        params.append(since)
+
+        sql = f"SELECT * FROM snapshots WHERE {' AND '.join(where)} ORDER BY date DESC, rank ASC LIMIT ?"
+        params.append(limit)
+        rows = c.execute(sql, params).fetchall()
+        conn.close()
+
+        # 按日期聚合
+        results = []
+        seen = set()
+        for r in rows:
+            key = (r["date"], r["company"], r["chain_id"])
+            if key in seen:
+                continue
+            seen.add(key)
+            results.append({
+                "date": r["date"],
+                "company": r["company"],
+                "chain_id": r["chain_id"],
+                "score": r["score"],
+                "direction": r["direction"],
+                "rank": r["rank"],
+                "metadata": json.loads(r["metadata"]) if r["metadata"] else {}
+            })
+        return results
+    except Exception as e:
+        print(f"[snapshot] query error: {e}")
+        return []
+
+def get_company_trend(company, days=30):
+    """获取单家公司的时间序列趋势"""
+    data = query_snapshots(company=company, days=days, limit=100)
+    trend = []
+    for d in data:
+        trend.append({
+            "date": d["date"],
+            "score": d["score"],
+            "chain_id": d["chain_id"],
+            "direction": d["direction"]
+        })
+    # 按日期升序
+    trend.sort(key=lambda x: x["date"])
+    return trend
+
+def get_hot_topics_since(days=7):
+    """获取近期最热主题（新闻频次+传播量综合）"""
+    _init_snapshot_db()
+    try:
+        conn = sqlite3.connect(SNAPSHOT_DB)
+        c = conn.cursor()
+        since = (datetime.datetime.now() - datetime.timedelta(days=days)).strftime("%Y-%m-%d")
+        rows = c.execute("""
+            SELECT company, chain_id, COUNT(*) as freq, AVG(ABS(score)) as avg_score
+            FROM snapshots WHERE date >= ? AND ABS(score) > 0.1
+            GROUP BY company ORDER BY freq * ABS(avg_score) DESC LIMIT 20
+        """, (since,)).fetchall()
+        conn.close()
+        return [
+            {"company": r[0], "chain_id": r[1], "frequency": r[2], "avg_intensity": round(abs(r[3]), 4)}
+            for r in rows
+        ]
+    except Exception as e:
+        print(f"[hot_topics] error: {e}")
+        return []
+
+# ====== v8.3 Layer 5: 排名引擎 (Ranking Layer) ======
+
+def rank_companies(impact_scores, impact_matrix, logic_path, chain=None):
+    """
+    多因子排名引擎
+    final_score = propagation × 0.40 + bottleneck × 0.20 + size × 0.10 + momentum × 0.15 + density × 0.15
+    """
+    if not impact_scores:
+        return []
+
+    # 因子1: 传播分 (propagation raw score)
+    max_raw = max(abs(s) for s in impact_scores.values()) or 1
+    prop_factor = {comp: abs(s) / max_raw for comp, s in impact_scores.items()}
+
+    # 因子2: 瓶颈分 (bottleneck weight from matrix)
+    bottleneck_factor = {}
+    for comp in impact_scores:
+        mx = impact_matrix.get(comp, {})
+        bw_contrib = abs(mx.get("bottleneck", 0))
+        bottleneck_factor[comp] = min(bw_contrib / 0.5, 1.0)  # normalized
+
+    # 因子3: 市值规模代理 (用公司在链中的节点数推测关注度)
+    size_factor = {}
+    if chain:
+        n_companies_per_node = {}
+        for nid, n in chain.get("nodes", {}).items():
+            for c in n.get("companies", []):
+                n_companies_per_node[c] = n_companies_per_node.get(c, 0) + 1
+        max_nodes = max(n_companies_per_node.values()) if n_companies_per_node else 1
+        for comp in impact_scores:
+            size_factor[comp] = n_companies_per_node.get(comp, 1) / max_nodes
+    else:
+        size_factor = {comp: 0.5 for comp in impact_scores}
+
+    # 因子4: 动量分 (最近的snapshot中score变化率)
+    momentum_factor = {}
+    for comp in impact_scores:
+        trend = get_company_trend(comp, days=7)
+        if len(trend) >= 2:
+            recent = trend[-1]["score"]
+            older = trend[-2]["score"]
+            change = (abs(recent) - abs(older)) / (abs(older) + 0.01)
+            momentum_factor[comp] = min(max(change * 5 + 0.5, 0), 1.0)  # 范围0-1
+        else:
+            momentum_factor[comp] = 0.5  # 无历史→中性
+
+    # 因子5: 新闻密度 (链内事件数)
+    density_factor = {}
+    event_count = len(logic_path.get("top_paths", [])) if logic_path else 1
+    max_path_score = max((p.get("total_score", 0) for p in (logic_path.get("top_paths", []) or [])), default=1)
+    for comp in impact_scores:
+        comp_in_paths = sum(1 for p in (logic_path.get("top_paths", []) or [])
+                           if comp in p.get("companies", []))
+        density_factor[comp] = min(comp_in_paths / max(1, event_count) * 2, 1.0)
+
+    # 加权汇总
+    ranked = []
+    for comp in impact_scores:
+        raw = impact_scores[comp]
+        final = (
+            prop_factor.get(comp, 0) * 0.40 +
+            bottleneck_factor.get(comp, 0) * 0.20 +
+            size_factor.get(comp, 0) * 0.10 +
+            momentum_factor.get(comp, 0) * 0.15 +
+            density_factor.get(comp, 0) * 0.15
+        )
+        # 方向保持
+        sign = 1 if raw > 0 else -1
+        ranked.append((comp, round(final * 100, 1), round(raw, 4), {
+            "propagation": round(prop_factor.get(comp, 0), 3),
+            "bottleneck": round(bottleneck_factor.get(comp, 0), 3),
+            "size": round(size_factor.get(comp, 0), 3),
+            "momentum": round(momentum_factor.get(comp, 0), 3),
+            "density": round(density_factor.get(comp, 0), 3)
+        }))
+
+    # 先按方向分组，再按分数排序
+    pos = sorted([r for r in ranked if r[0] in impact_scores and impact_scores[r[0]] > 0], key=lambda x: -x[1])
+    neg = sorted([r for r in ranked if r[0] in impact_scores and impact_scores[r[0]] < 0], key=lambda x: -x[1])
+
+    return {
+        "ranked": ranked,
+        "top3": [r[0] for r in pos[:3]],
+        "top5": [r[0] for r in pos[:5]],
+        "top10": [r[0] for r in pos[:10]],
+        "details": {comp: {"rank_score": sc, "propagation_score": raw_sc, "factors": factors}
+                    for comp, sc, raw_sc, factors in ranked},
+        "positive_sorted": [(r[0], r[1], r[2]) for r in pos],
+        "negative_sorted": [(r[0], r[1], r[2]) for r in neg]
+    }
+
+# ====== v8.3 API: 快照查询 ======
+
+@app.route("/api/snapshots")
+def api_snapshots():
+    """查询快照历史"""
+    company = request.args.get("company", "")
+    chain_id = request.args.get("chain_id", "")
+    days = int(request.args.get("days", 30))
+    
+    if company:
+        trend = get_company_trend(company, days=days)
+        return jsonify({"status": "ok", "data": trend, "company": company})
+    
+    chain_data = query_snapshots(chain_id=chain_id, days=days, limit=500) if chain_id else []
+    return jsonify({"status": "ok", "data": chain_data, "chain_id": chain_id or "all"})
+
+@app.route("/api/snapshots/hot")
+def api_hot_topics():
+    """近期热点主题"""
+    days = int(request.args.get("days", 7))
+    hot = get_hot_topics_since(days=days)
+    return jsonify({"status": "ok", "data": hot, "days": days})
+
+@app.route("/api/snapshots/trend")
+def api_trend():
+    """多家公司批量趋势查询"""
+    companies = request.args.get("companies", "").split(",")
+    if not companies or companies == [""]:
+        return jsonify({"status": "error", "msg": "请提供 companies 参数"})
+    result = {}
+    for comp in companies[:10]:
+        result[comp.strip().upper()] = get_company_trend(comp.strip(), days=30)
+    return jsonify({"status": "ok", "data": result})
+
+# ====== v8.3 修改news_scan: 自动存档+排名 ======
+# (news_scan_v83 覆盖原始 news_scan，添加排名+快照功能，并包含速率限制和缓存)
+
+@app.route("/api/news/scan")
+def news_scan_v83():
+    """v8.3 全市场新闻扫描 + 传播推导 + 排名 + 快照"""
+    # 速率限制 (v9.0+)
+    if request.remote_addr not in LOCAL_IPS and not _rl_check(request.remote_addr):
+        return jsonify({"status": "error", "msg": "请求过于频繁，请稍后再试"}), 429
+    
+    chain_id = request.args.get("chain_id", "")
+    
+    # 内存缓存 (v9.0+): 30分钟有效
+    cache_key = f"news:{chain_id or 'all'}"
+    cached = _cache_get(cache_key)
+    if cached:
+        return jsonify(cached)
+    
+    chains = _load_json(CHAINS_FILE, {}).get("chains", {})
+
+    if chain_id:
+        if chain_id not in chains:
+            return jsonify({"status": "error", "msg": "产业链不存在"})
+        target = {chain_id: chains[chain_id]}
+    else:
+        target = chains
+
+    chain_keywords = {}
+    for cid, chain in target.items():
+        kws = list(set(chain.get("keywords", []) + [chain.get("name", "")]))
+        chain_keywords[cid] = kws
+
+    all_kws = list(set(kw for kws in chain_keywords.values() for kw in kws if kw))
+
+    # 拉取新闻
+    articles = _fetch_news(all_kws[:25])
+
+    # 匹配分析
+    results = _match_articles(articles, chain_keywords, target)
+
+    # ===== 传播引擎 =====
+    full_chains = load_chains_full()
+    propagation_results = {}
+    for art in articles[:20]:
+        text = art.get("title", "") + " " + art.get("content", "")
+        art_time = art.get("time", "")
+        decay = time_decay(art_time)
+
+        for cid, chain in full_chains.items():
+            if not chain.get("nodes"):
+                continue
+            entities = entity_extract(text, chain)
+            if not entities:
+                continue
+            dc = classify_direction(text)
+            if dc["primary"] == "neutral":
+                continue
+
+            prop = propagate_full_multi(chain, entities, dc["directions"])
+            impact = prop["impact_scores"]
+            breakdown = prop["impact_matrix"]
+            logic_path = prop["logic_path"]
+
+            # v8.3: 排名引擎
+            ranking = rank_companies(impact, breakdown, logic_path, chain)
+
+            time_proj = {}
+            for comp, score in list(impact.items())[:3]:
+                time_proj[comp] = time_propagation(score)
+
+            if cid not in propagation_results:
+                propagation_results[cid] = {"events": [], "aggregate_scores": {}}
+
+            positive = {k: v for k, v in impact.items() if v > 0}
+            negative = {k: v for k, v in impact.items() if v < 0}
+
+            propagation_results[cid]["events"].append({
+                "article_title": art.get("title", "")[:80],
+                "directions": dc["directions"],
+                "direction_labels": dc.get("direction_labels", []),
+                "direction_confidence": dc["confidence"],
+                "direction_evidence": dc["evidence"],
+                "entity_nodes": entities,
+                "impact_scores": dict(list(impact.items())[:5]),
+                "positive_scores": dict(list(positive.items())[:5]),
+                "negative_scores": dict(list(negative.items())[:5]),
+                "impact_matrix": breakdown,
+                "time_projection": time_proj,
+                "logic_path": logic_path,
+                "ranking": {  # v8.3 排名结果
+                    "top3": ranking["top3"],
+                    "top5": ranking["top5"],
+                    "top10": ranking["top10"],
+                    "details": {k: v for k, v in list(ranking["details"].items())[:10]}
+                }
+            })
+            for comp, score in impact.items():
+                propagation_results[cid]["aggregate_scores"][comp] = round(
+                    propagation_results[cid]["aggregate_scores"].get(comp, 0) + score * decay, 4
+                )
+
+    # 聚合后计算正负和净倾向
+    for cid in propagation_results:
+        agg = propagation_results[cid]["aggregate_scores"]
+        propagation_results[cid]["aggregate_scores"] = dict(sorted(agg.items(), key=lambda x: -abs(x[1])))
+        propagation_results[cid]["positive"] = dict(sorted(
+            {k: v for k, v in agg.items() if v > 0}.items(), key=lambda x: -x[1]))
+        propagation_results[cid]["negative"] = dict(sorted(
+            {k: v for k, v in agg.items() if v < 0}.items(), key=lambda x: x[1]))
+        net = sum(agg.values())
+        propagation_results[cid]["net_sentiment"] = "bullish" if net > 0 else "bearish" if net < 0 else "neutral"
+        propagation_results[cid]["net_score"] = round(net, 4)
+
+        # v8.3: 对聚合结果也运行排名
+        chain_obj = full_chains.get(cid)
+        if chain_obj and agg:
+            # 简化排名（无logic_path）
+            fake_logic = {"top_paths": []}
+            ranked = rank_companies(agg, {}, fake_logic, chain_obj)
+            propagation_results[cid]["ranking"] = {
+                "top3": ranked["top3"],
+                "top5": ranked["top5"],
+                "top10": ranked["top10"],
+                "positive_sorted": ranked["positive_sorted"][:5],
+                "negative_sorted": ranked["negative_sorted"][:5]
+            }
+
+    results["propagation"] = propagation_results
+
+    # ===== v8.3: 保存快照 =====
+    try:
+        saved = save_scan_snapshot(propagation_results)
+        results["snapshots_saved"] = saved
+    except Exception as e:
+        print(f"[snapshot] save error: {e}")
+        results["snapshots_saved"] = 0
+
+    # ===== 高级功能 =====
+    update_chain_heat(propagation_results)
+    results["resonance"] = detect_resonance(propagation_results)
+    results["rotation"] = compute_rotation(propagation_results)
+    results["candidate_chains"] = auto_discover_chains(articles, full_chains)
+
+    # 保存缓存
+    news_file = os.path.join(WORKSPACE, "news_cache.json")
+    try:
+        cache = _load_json(news_file, {})
+        cache["last_scan"] = _time.strftime("%Y-%m-%d %H:%M")
+        cache["results"] = results
+        _save_json(news_file, cache)
+    except:
+        pass
+    
+    resp = {"status": "ok", "data": results}
+    _cache_set(cache_key, resp, CACHE_TTL["news"])
+    return jsonify(resp)
+
+# ====== v8.3 链评分拆分: Importance vs Opportunity ======
+# 修改 /api/chains 路由
+_original_get_chains = get_chains_legacy
+
+@app.route("/api/chains")
+def get_chains_v83():
+    """v8.3 返回所有产业链（Importance + Opportunity 双维度评分）"""
+    chains = _load_json(CHAINS_FILE, {})
+    heat_data = _load_json(os.path.join(WORKSPACE, "chain_heat.json"), {})
+    heat_chains = heat_data.get("chains", {})
+    
+    # 读取快照统计
+    _init_snapshot_db()
+    snapshot_stats = {}
+    try:
+        conn = sqlite3.connect(SNAPSHOT_DB)
+        c = conn.cursor()
+        since_7d = (datetime.datetime.now() - datetime.timedelta(days=7)).strftime("%Y-%m-%d")
+        rows = c.execute("""
+            SELECT chain_id, COUNT(DISTINCT company) as comp_count, 
+                   AVG(ABS(score)) as avg_impact, MAX(ABS(score)) as max_impact
+            FROM snapshots WHERE date >= ? 
+            GROUP BY chain_id
+        """, (since_7d,)).fetchall()
+        conn.close()
+        for r in rows:
+            snapshot_stats[r[0]] = {"comp_count": r[1], "avg_impact": abs(r[2]) if r[2] else 0, "max_impact": abs(r[3]) if r[3] else 0}
+    except:
+        pass
+
+    summary = {}
+
+    for cid, c in chains.get("chains", {}).items():
+        node_count = len(c.get("nodes", {}))
+        total_companies = set()
+        edge_count = 0
+        bottlenecks = 0
+        for nid, n in c.get("nodes", {}).items():
+            for co in n.get("companies", []):
+                total_companies.add(co)
+            if n.get("bottleneck"):
+                bottlenecks += 1
+            edge_count += len(n.get("upstream", [])) + len(n.get("downstream", []))
+
+        # v8.3: Importance Score (静态结构分)
+        importance_score = min(100, int(
+            node_count * 4 + len(total_companies) * 3 + edge_count * 1.5 + bottlenecks * 8
+        ))
+
+        # v8.3: Opportunity Score (动态机会分)
+        hc = heat_chains.get(cid, {})
+        recent_counts = [d["count"] for d in hc.get("daily_counts", [])[-7:]]
+        total_news_7d = sum(recent_counts) if recent_counts else 0
+        
+        net_scores = [d["net"] for d in hc.get("net_scores", [])[-7:] if d.get("net") is not None]
+        avg_net = sum(net_scores) / len(net_scores) if net_scores else 0
+        
+        # 快照因子
+        snap = snapshot_stats.get(cid, {})
+        snap_comp_count = snap.get("comp_count", 0)
+        snap_avg_impact = snap.get("avg_impact", 0)
+
+        opp_news = min(30, total_news_7d * 3)
+        opp_propagation = min(30, snap_avg_impact * 10)
+        opp_momentum = min(25, max(0, (avg_net + 5) * 3))
+        opp_coverage = min(15, snap_comp_count * 3)
+        opportunity_score = round(opp_news + opp_propagation + opp_momentum + opp_coverage, 1)
+
+        trend = "rising" if avg_net > 1 else "falling" if avg_net < -1 else "stable"
+
+        summary[cid] = {
+            "name": c.get("name", cid),
+            "market": c.get("market", "US"),
+            "timeframe": c.get("timeframe", "? "),
+            "keywords": c.get("keywords", [])[:5],
+            "node_count": node_count,
+            "company_count": len(total_companies),
+            "bottleneck_nodes": bottlenecks,
+            "edge_count": edge_count,
+            # v8.3 双维度
+            "importance_score": importance_score,
+            "opportunity_score": opportunity_score,
+            "chain_score": round((importance_score + opportunity_score) / 2, 1),
+            "trend": trend,
+            "recent_news_7d": total_news_7d
+        }
+
+    sorted_summary = dict(sorted(summary.items(), key=lambda x: -x[1]["chain_score"]))
+    return jsonify({"status": "ok", "data": sorted_summary})
+
+
+# ====== 初始化快照数据库 ======
+_init_snapshot_db()
 
 if __name__ == "__main__":
-    app.run(host="127.0.0.1", port=5001, debug=False, threaded=True)
+    port = int(os.environ.get("PORT", 5001))
+    app.run(host="0.0.0.0", port=port, debug=False, threaded=True)

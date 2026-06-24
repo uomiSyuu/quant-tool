@@ -19,8 +19,8 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 项目文件 — 必须包含quant_tool/子模块！
-COPY data_proxy.py quant.html ./
+# 项目文件 — 必须包含quant_tool/子模块 + JSON数据文件
+COPY data_proxy.py quant.html portfolio.json industry_chains.json ./
 COPY quant_tool/ ./quant_tool/
 
 # SEC EDGAR缓存目录
@@ -30,4 +30,4 @@ RUN mkdir -p quant_tool/.sec_cache
 EXPOSE 5001
 
 # 启动（单worker避免westock并发冲突）
-CMD ["gunicorn", "data_proxy:app", "--bind", "0.0.0.0:5001", "--timeout", "180", "--workers", "1", "--keep-alive", "5"]
+CMD gunicorn data_proxy:app --bind 0.0.0.0:$PORT --timeout 180 --workers 1 --keep-alive 5
