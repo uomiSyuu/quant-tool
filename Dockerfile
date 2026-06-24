@@ -1,8 +1,12 @@
-# 量化分析 v9.0 — Docker部署
+# 量化分析 v9.0 — Docker部署 (Railway适配)
 # 数据流: 腾讯API(实时行情) + SEC EDGAR XBRL(美股财报) + westock(备用)
 # 用法: docker build -t quant-tool . && docker run -p 5001:5001 quant-tool
 
 FROM python:3.11-slim
+
+# 强制重建缓存（2026-06-24 Railway Fix）
+ARG CACHE_BUST=1
+RUN echo "Build CACHE_BUST=$CACHE_BUST"
 
 # 安装Node.js（westock备用数据源，npm包缓存化减少启动时间）
 RUN apt-get update && apt-get install -y curl && \
