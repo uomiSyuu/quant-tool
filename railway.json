@@ -5,6 +5,7 @@
     "dockerfilePath": "Dockerfile"
   },
   "deploy": {
+    "region": "asia-northeast1",
     "numReplicas": 1,
     "startCommand": "",
     "restartPolicyType": "ON_FAILURE",
