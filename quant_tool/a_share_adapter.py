@@ -21,12 +21,38 @@ SINA_QUOTE_URL = "https://hq.sinajs.cn/list={}"
 EASTMONEY_KLINE_URL = "https://push2his.eastmoney.com/api/qt/stock/kline/get"
 EASTMONEY_BOARD_URL = "https://push2.eastmoney.com/api/qt/clist/get"
 EASTMONEY_BOARD_STOCK_URL = "https://push2.eastmoney.com/api/qt/clist/get"
+EASTMONEY_DATACENTER_URL = "https://datacenter-web.eastmoney.com/api/data/v1/get"
 
 SINA_HEADERS = {"Referer": "https://finance.sina.com.cn"}
 UA_HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
 
 _market_map = {"sh": 1, "sz": 0, "bj": 2}
 _market_rev = {"sh": "1", "sz": "0", "bj": "2"}
+
+# v9.1: 东方财富直连API缓存（财报数据缓存24小时，很少变化）
+_em_cache = {}
+_em_cache_lock = None
+try:
+    import threading
+    _em_cache_lock = threading.Lock()
+except:
+    pass
+
+def _em_cache_get(key, ttl=86400):
+    """24小时缓存"""
+    if not _em_cache_lock:
+        return None
+    with _em_cache_lock:
+        e = _em_cache.get(key)
+        if e and time.time() < e[1]:
+            return e[0]
+        return None
+
+def _em_cache_set(key, val, ttl=86400):
+    if not _em_cache_lock:
+        return
+    with _em_cache_lock:
+        _em_cache[key] = (val, time.time() + ttl)
 
 # ====== 1. 实时行情 ======
 
@@ -288,6 +314,117 @@ def get_ashare_kline(symbol, period="daily", start_date="", end_date="", limit=1
 
 # ====== 3. 财报数据 ======
 
+def _ashare_to_secucode(ns):
+    """将 sh600519 转为 600519.SH"""
+    prefix = ns[:2]
+    code = ns[2:]
+    mkt = prefix.upper()
+    if mkt == "SH":
+        mkt = "SH"
+    elif mkt == "SZ":
+        mkt = "SZ"
+    elif mkt == "BJ":
+        mkt = "BJ"
+    return f"{code}.{mkt}"
+
+
+def get_ashare_financials_eastmoney(symbol):
+    """
+    v9.1: 东方财富直连API获取财务数据（替代akshare）
+    速度更快，海外访问更稳定，24小时缓存
+    
+    返回: {income: [{}], balance: [{}], cashflow: [{}]}
+    """
+    ns = normalize_ashare_symbol(symbol)
+    secucode = _ashare_to_secucode(ns)
+    cache_key = f"em_fin_{secucode}"
+    
+    cached = _em_cache_get(cache_key, 86400)
+    if cached:
+        return cached
+    
+    result = {}
+    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+    ses = requests.Session()
+    
+    reports = {
+        "income": "RPT_DMSK_FN_INCOME",
+        "balance": "RPT_DMSK_FN_BALANCE",
+        "cashflow": "RPT_DMSK_FN_CASHFLOW"
+    }
+    
+    for key, report_name in reports.items():
+        params = {
+            "reportName": report_name,
+            "columns": "ALL",
+            "filter": f'(SECUCODE="{secucode}")',
+            "pageNumber": 1,
+            "pageSize": 5,
+            "sortTypes": -1,
+            "sortColumns": "REPORT_DATE"
+        }
+        try:
+            r = ses.get(EASTMONEY_DATACENTER_URL, params=params, headers=headers, timeout=15)
+            d = r.json()
+            if d.get("result") and d["result"].get("data"):
+                result[key] = d["result"]["data"]
+        except Exception as e:
+            print(f"[em_fin_{key}] {symbol}: {e}")
+    
+    if result:
+        _em_cache_set(cache_key, result, 86400)
+    return result
+
+
+def _map_em_income(row):
+    """将东方财富利润表字段映射到统一格式"""
+    return {
+        "营业总收入": row.get("TOTAL_OPERATE_INCOME"),
+        "营业毛利": (row.get("TOTAL_OPERATE_INCOME") or 0) - (row.get("OPERATE_COST") or 0) if row.get("TOTAL_OPERATE_INCOME") and row.get("OPERATE_COST") else None,
+        "营业总成本": row.get("TOTAL_OPERATE_COST"),
+        "营业利润": row.get("OPERATE_PROFIT"),
+        "利润总额": row.get("TOTAL_PROFIT"),
+        "净利润": row.get("PARENT_NETPROFIT"),
+        "扣非净利润": row.get("DEDUCT_PARENT_NETPROFIT"),
+        "销售费用": row.get("SALE_EXPENSE"),
+        "管理费用": row.get("MANAGE_EXPENSE"),
+        "财务费用": row.get("FINANCE_EXPENSE"),
+        "研发费用": row.get("MANAGE_EXPENSE"),  # EM无独立研发费用，用管理费用近似
+        "所得税": row.get("INCOME_TAX"),
+        "基本每股收益": row.get("BASIC_EPS"),
+        "报告日": str(row.get("REPORT_DATE", ""))[:10],
+    }
+
+
+def _map_em_balance(row):
+    """将东方财富资产负债表字段映射到统一格式"""
+    mapped = {
+        "资产总计": row.get("TOTAL_ASSETS"),
+        "负债合计": row.get("TOTAL_LIABILITIES"),
+        "归属于母公司股东权益合计": row.get("TOTAL_EQUITY"),
+        "货币资金": row.get("MONETARYFUNDS"),
+        "存货": row.get("INVENTORY"),
+        "应收账款": row.get("ACCOUNTS_RECE"),
+        "固定资产": row.get("FIXED_ASSET"),
+        "流动比率": row.get("CURRENT_RATIO"),
+        "资产负债率": row.get("DEBT_ASSET_RATIO"),
+        "报告日": str(row.get("REPORT_DATE", ""))[:10],
+    }
+    return mapped
+
+
+def _map_em_cashflow(row):
+    """将东方财富现金流量表字段映射到统一格式"""
+    return {
+        "经营活动产生的现金流量净额": row.get("NETCASH_OPERATE"),
+        "投资活动产生的现金流量净额": row.get("NETCASH_INVEST"),
+        "筹资活动产生的现金流量净额": row.get("NETCASH_FINANCE"),
+        "现金及现金等价物净增加额": row.get("CCE_ADD"),
+        "购建固定资产、无形资产和其他长期资产支付的现金": row.get("CONSTRUCT_LONG_ASSET"),
+        "销售商品、提供劳务收到的现金": row.get("SALES_SERVICES"),
+        "报告日": str(row.get("REPORT_DATE", ""))[:10],
+    }
+
 def get_ashare_financials(symbol):
     """
     获取A股财务报表（三大表合一）
@@ -393,10 +530,49 @@ def get_ashare_board_stocks(board_code, limit=100):
 
 def parse_ashare_financials(fd, code):
     """
-    解析ale财报到统一数据格式(兼容美股westock格式)
+    v9.1: 解析A股财报到统一数据格式
+    数据源优先级: 东方财富直连API(主) → akshare/新浪(备)
     fd: dict 数据容器，直接修改
     code: A股6位代码
     """
+    # === 1. 东方财富直连API（主数据源）===
+    em_fin = get_ashare_financials_eastmoney(code)
+    if em_fin:
+        # 利润表
+        if "income" in em_fin and em_fin["income"]:
+            row = _map_em_income(em_fin["income"][0])
+            fd["revenue"] = _float(row.get("营业总收入"))
+            fd["net_income"] = _float(row.get("净利润"))
+            fd["gross_profit"] = _float(row.get("营业毛利"))
+            fd["operating_income"] = _float(row.get("营业利润"))
+            fd["total_cost"] = _float(row.get("营业总成本"))
+            fd["rd_expense"] = _float(row.get("研发费用"))
+            fd["sga_expense"] = _float(row.get("销售费用"))
+            fd["report_date"] = str(row.get("报告日", ""))[:10]
+        
+        # 资产负债表
+        if "balance" in em_fin and em_fin["balance"]:
+            row = _map_em_balance(em_fin["balance"][0])
+            fd["total_assets"] = _float(row.get("资产总计"))
+            fd["total_liabilities"] = _float(row.get("负债合计"))
+            fd["equity"] = _float(row.get("归属于母公司股东权益合计"))
+            fd["cash_and_equivalents"] = _float(row.get("货币资金"))
+            fd["inventory"] = _float(row.get("存货"))
+            fd["accounts_receivable"] = _float(row.get("应收账款"))
+            # book_value_per_share需要股份数，EM接口没有直接提供，后续通过衍生计算
+            fd["book_value_per_share"] = None
+        
+        # 现金流量表
+        if "cashflow" in em_fin and em_fin["cashflow"]:
+            row = _map_em_cashflow(em_fin["cashflow"][0])
+            fd["operating_cashflow"] = _float(row.get("经营活动产生的现金流量净额"))
+            fd["free_cashflow"] = _float(row.get("经营活动产生的现金流量净额"))  # FCF近似
+            fd["capex"] = _float(row.get("购建固定资产、无形资产和其他长期资产支付的现金"))
+        
+        fd["_data_source"] = "eastmoney_api"
+        return fd
+    
+    # === 2. akshare/新浪（备胎）===
     fin = get_ashare_financials(code)
     if not fin:
         return fd
