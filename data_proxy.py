@@ -131,8 +131,10 @@ SECTOR_CN_MAP = {
     "软件服务": "saas", "计算机软件": "saas",
     "技术服务": "saas",  # CDNS/SNPS/GOOG/CRM/NOW
     "互联网": "internet", "互联网服务": "internet",
+    # 通信/媒体
     "通信服务": "internet", "网络": "internet",
     "社交平台": "internet", "电子商务": "internet",
+    "电视广播": "internet",  # 有线电视/广电类归为互联网/传媒
     # 金融
     "金融": "finance", "银行": "finance", "保险": "finance",
     "证券": "finance", "多元金融": "finance", "投资": "finance",
