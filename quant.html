@@ -346,7 +346,7 @@ function render(d){
     "每股净值":"book_value_per_share","PS":"ps","PB":"pb","ROE":"roe","ROIC":"roic","ROA":"roa",
     "负债率":"debt_ratio","流动比率":"current_ratio","股息率":"dividend_yield","FCF Yield":"fcf_yield",
     "FCF(真实)":"free_cf","FCF Margin":"fcf_margin","经营现金流":"operating_cf","资本支出":"capex","经营现金流":"operating_cf",
-    "利润增速":"profit_growth","增速":"revenue_growth","Rule of 40":"revenue_growth",
+    "利润增速":"profit_growth","增速":"revenue_growth","Rule of 40":"fcf_margin",
     "EV/EBITDA":"ev_ebitda","PEG":"peg","P/FCF":"fcf_yield","库存增长":"inventory_growth","净利稳定性":"net_margin",
     "现金流":"operating_cf","库存":"inventory_growth","Beta":"beta","利息覆盖":"debt_ratio"};
   function _getPeriod(displayName){
@@ -1221,7 +1221,7 @@ function _scrScore(type, vals){
       ["pg",">",0.20,"利润增长>20%"],
       ["gm",">",0.40,"毛利率>40%"],
       ["roic",">",0.15,"ROIC>15%"],
-      ["fcf_margin",">","r40","Rule of 40>40","rg*100+fcf_margin*100>40"],
+      ["fcf_margin",">","r40","Rule of 40>40","rg+fcf_margin>0.40"],
     ],
     value:[
       ["pe",">=","<",15,"PE(0~15)"],

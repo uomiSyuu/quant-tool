@@ -125,16 +125,16 @@ SECTOR_CN_MAP = {
     # 半导体/电子
     "半导体": "semicon", "电子技术": "semicon",
     "电子元器件": "semicon", "信息技术": "semicon",
+    "光学光电子": "semicon", "消费电子": "tech_hardware",
     "技术硬件": "tech_hardware", "电脑周边": "tech_hardware",
-    "消费电子": "tech_hardware",
-    # 软件/互联网
+    "计算机设备": "tech_hardware", "自动化设备": "tech_hardware",
+    # 软件/互联网/传媒
     "软件服务": "saas", "计算机软件": "saas",
-    "技术服务": "saas",  # CDNS/SNPS/GOOG/CRM/NOW
+    "软件开发": "saas", "技术服务": "saas",
     "互联网": "internet", "互联网服务": "internet",
-    # 通信/媒体
     "通信服务": "internet", "网络": "internet",
     "社交平台": "internet", "电子商务": "internet",
-    "电视广播": "internet",  # 有线电视/广电类归为互联网/传媒
+    "电视广播": "internet", "广告传媒": "internet",
     # 金融
     "金融": "finance", "银行": "finance", "保险": "finance",
     "证券": "finance", "多元金融": "finance", "投资": "finance",
@@ -144,30 +144,39 @@ SECTOR_CN_MAP = {
     "医药生物": "health", "医疗": "health", "医疗器械": "health",
     "制药": "health", "生物科技": "health",
     "医疗保健": "health", "大型药物": "health",
-    # 消费
+    "中药": "health", "化学制药": "health", "医疗服务": "health",
+    # 消费(食品饮料/白酒/家电/汽车)
     "非耐用消费品": "consumer", "耐用消费品": "consumer",
     "食品饮料": "consumer", "消费品": "consumer", "家用电器": "consumer",
-    "消费者服务": "consumer",  # MCD等
+    "消费者服务": "consumer",
+    "白酒": "consumer", "调味发酵品": "consumer", "饮料乳品": "consumer",
+    "白色家电": "consumer", "乘用车": "auto",
+    "汽车": "auto", "汽车零部件": "auto", "汽车制造": "auto",
     "零售": "retail", "商业贸易": "retail",
     "服装": "consumer", "奢侈品": "consumer", "软饮料": "consumer",
     "家庭": "consumer", "个人护理": "consumer",
-    # 能源
+    # 能源/资源
     "能源矿产": "energy", "石油化工": "energy", "采掘": "energy",
     "石油天然气": "energy", "新能源": "energy",
-    "能源": "energy", "化工": "energy", "综合性石油": "energy",
-    # 汽车
-    "汽车": "auto", "汽车零部件": "auto", "汽车制造": "auto",
-    # 工业/军工/制造
+    "能源": "energy", "综合性石油": "energy",
+    "煤炭开采": "energy", "炼化及贸易": "energy",
+    "化学制品": "energy", "化学原料": "energy", "化工": "energy",
+    # 工业/制造/建设
     "机械设备": "industrial", "工业": "industrial", "电气设备": "industrial",
-    "工业机械": "industrial", "生产制造": "industrial",  # CAT/DE/GE/AMAT等
+    "工业机械": "industrial", "生产制造": "industrial",
+    "工程机械": "industrial", "电网设备": "industrial",
+    "光伏设备": "industrial", "电池": "industrial",
+    "专业工程": "industrial", "基础建设": "industrial",
+    "房屋建设": "industrial", "水泥": "industrial",
+    "建筑材料": "materials", "有色金属": "materials",
+    "钢铁": "materials", "金属": "materials", "工业金属": "materials",
+    # 军工/国防
     "航空航天": "defense", "军工": "defense",
-    "国防": "defense",
+    "国防": "defense", "航空装备": "defense", "航海装备": "defense",
     # 公用事业
     "公用事业": "utility", "电力": "utility",
     # 房地产
-    "房地产": "real_estate", "建筑材料": "real_estate",
-    # 材料
-    "有色金属": "materials", "钢铁": "materials", "金属": "materials",
+    "房地产": "real_estate",
     # 其他
     "农林牧渔": "agriculture",
     "交通运输": "transport", "物流": "transport",
