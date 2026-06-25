@@ -922,18 +922,26 @@ def fetch_live(symbol):
             # FCF Margin
             if fd.get("fcf_margin") is None and fd.get("free_cashflow") and fd.get("revenue") and fd["revenue"] > 0:
                 fd["fcf_margin"] = round(fd["free_cashflow"] * 4 / fd["revenue"], 4)
-            # EV/EBITDA
+            # EV/EBITDA = (市值 + 总负债 - 现金) / EBITDA
             if fd.get("ev_ebitda") is None and fd.get("market_cap") and fd["market_cap"] > 0:
-                ebitda_val = fd.get("ebitda") or fd.get("operating_income")
-                if ebitda_val and ebitda_val > 0:
-                    fd["ev_ebitda"] = round(fd["market_cap"] / (ebitda_val * 4), 2)
+                eb = fd.get("ebitda") or fd.get("operating_income")
+                if eb and eb > 0:
+                    tl = fd.get("total_liabilities") or 0
+                    cs = fd.get("cash_and_equivalents") or fd.get("cash_short_term") or 0
+                    mc = fd["market_cap"]
+                    ev = mc + tl - cs
+                    fd["ev_ebitda"] = round(ev / (eb * 4), 2)
             # 负债率（如果EastMoney没返回，手动计算）
             if fd.get("debt_ratio") is None and fd.get("total_liabilities") and fd.get("total_assets") and fd["total_assets"] > 0:
                 fd["debt_ratio"] = round(fd["total_liabilities"] / fd["total_assets"], 4)
             # PS = 市值 / 年化营收
             if fd.get("ps") is None and fd.get("market_cap") and fd.get("revenue") and fd["revenue"] > 0 and fd["market_cap"] > 0:
                 fd["ps"] = round(fd["market_cap"] / (fd["revenue"] * 4), 2)
-            # PB（如果没有从行情拿到，用市值/净资产估算）
+            # PEG = PE / 营收增速
+            if fd.get("peg") is None and fd.get("pe") and fd.get("pe") > 0:
+                eg_rate = fd.get("revenue_growth") or fd.get("profit_growth")
+                if eg_rate and eg_rate > 0:
+                    fd["peg"] = round(fd["pe"] / (eg_rate * 100), 2)
             if fd.get("pb") is None and fd.get("price") and fd.get("book_value_per_share") and fd["book_value_per_share"] > 0:
                 fd["pb"] = round(fd["price"] / fd["book_value_per_share"], 2)
             if fd.get("pb") is None and fd.get("market_cap") and fd.get("equity") and fd["equity"] > 0:
@@ -1377,11 +1385,18 @@ def fetch_live(symbol):
         if ic > 0:
             fd["roic"] = nopat / ic
 
-    # Forward PE (不用硬编码15%)
+    # Forward PE
     if not fd.get("pe_forward") and fd.get("pe"):
         if fd.get("revenue_growth"):
             eg = min(max(abs(fd["revenue_growth"]), 0.05), 0.50)
             fd["pe_forward"] = round(fd["pe"] / (1 + eg), 1)
+
+    # PEG = PE / 预期净利润增长率（用营收增速proxy）
+    # PEG≈1 → 估值与增长匹配, <1→相对偏便宜, >1.5→偏贵
+    if fd.get("peg") is None and fd.get("pe") and fd.get("pe") > 0:
+        eg_rate = fd.get("revenue_growth") or fd.get("profit_growth")
+        if eg_rate and eg_rate > 0:
+            fd["peg"] = round(fd["pe"] / (eg_rate * 100), 2)
 
     if fd.get("price") and fd.get("market_cap") and fd["price"] > 1:
         if fd["market_cap"] / fd["price"] < 50000000:
@@ -1837,7 +1852,7 @@ def stock(symbol):
                   "cash_short_term":"现金","inventory":"存货","receivables":"应收",
                   "current_ratio":"流动比率","quick_ratio":"速动比率","book_value_per_share":"每股净值",
                   "receivables_growth":"应收增长","inventory_growth":"存货增长",
-                  "beta":"Beta系数","ev_ebitda":"EV/EBITDA"}
+                  "beta":"Beta系数","ev_ebitda":"EV/EBITDA","peg":"PEG"}
     for k, label in fin_fields.items():
         if fd.get(k) is not None:
             result[k] = {"v": fd[k], "label": label, 

@@ -206,7 +206,7 @@ function sw(i,el){
   if(i===3) setTimeout(pfLoad,100); // 切到板块扫描时加载组合数据
 }
 function v(o){return o&&o.v!==undefined?o.v:o}
-function fmt(n,u){if(n===undefined||isNaN(n))return"—";if(u==="%")return (n*100).toFixed(1)+"%";if(Math.abs(n)>=1e12)return (n/1e12).toFixed(2)+"T";if(Math.abs(n)>=1e9)return (n/1e9).toFixed(2)+"B";if(Math.abs(n)>=1e6)return (n/1e6).toFixed(2)+"M";return n.toFixed(2)}
+function fmt(n,u){if(n==null||n===undefined||isNaN(n))return"—";if(u==="%")return (n*100).toFixed(1)+"%";if(Math.abs(n)>=1e12)return (n/1e12).toFixed(2)+"T";if(Math.abs(n)>=1e9)return (n/1e9).toFixed(2)+"B";if(Math.abs(n)>=1e6)return (n/1e6).toFixed(2)+"M";return n.toFixed(2)}
 
 // ===== 个股分析 =====
 async function go(){
@@ -233,7 +233,7 @@ function render(d){
       _dates[k]=item.date;
     }
   }
-  const dd={rg:v(d.revenue_growth),gm:v(d.gross_margin),nm:v(d.net_margin),pg:v(d.profit_growth),pe:v(d.pe),ps:v(d.ps),pb:v(d.pb),fy:v(d.fcf_yield),ev:v(d.ev_ebitda),roic:v(d.roic),roe:v(d.roe),dr:v(d.debt_ratio),dy:v(d.dividend_yield),fm:v(d.fcf_margin),beta:v(d.beta),price:v(d.price),eps:v(d.eps),name:d.name,sec:d.sector||"",src:d.finance_source||"",fis:d.fiscal_year||"",pf:v(d.pe_forward),h52:v(d.high_52w),l52:v(d.low_52w),chg:v(d.change_pct),bv:v(d.book_value_per_share),roa:v(d.roa),cr:v(d.current_ratio),cash:v(d.cash_short_term),fcf:v(d.free_cf),ocf:v(d.operating_cf),capex:v(d.capex),rg_gr:v(d.receivables_growth),inv_gr:v(d.inventory_growth),
+  const dd={rg:v(d.revenue_growth),gm:v(d.gross_margin),nm:v(d.net_margin),pg:v(d.profit_growth),pe:v(d.pe),ps:v(d.ps),pb:v(d.pb),fy:v(d.fcf_yield),ev:v(d.ev_ebitda),peg:v(d.peg),roic:v(d.roic),roe:v(d.roe),dr:v(d.debt_ratio),dy:v(d.dividend_yield),fm:v(d.fcf_margin),beta:v(d.beta),price:v(d.price),eps:v(d.eps),name:d.name,sec:d.sector||"",src:d.finance_source||"",fis:d.fiscal_year||"",pf:v(d.pe_forward),h52:v(d.high_52w),l52:v(d.low_52w),chg:v(d.change_pct),bv:v(d.book_value_per_share),roa:v(d.roa),cr:v(d.current_ratio),cash:v(d.cash_short_term),fcf:v(d.free_cf),ocf:v(d.operating_cf),capex:v(d.capex),rg_gr:v(d.receivables_growth),inv_gr:v(d.inventory_growth),
     pc:d.percentiles?.v, st:d.stability?.v, cy:d.cycle?.v, rk:d.risk?.v, adj:d.adjustments?.v, dq:d.data_quality?.v, rt:d.rating?.v,
     _dates:_dates};
   
@@ -347,7 +347,7 @@ function render(d){
     "负债率":"debt_ratio","流动比率":"current_ratio","股息率":"dividend_yield","FCF Yield":"fcf_yield",
     "FCF(真实)":"free_cf","FCF Margin":"fcf_margin","经营现金流":"operating_cf","资本支出":"capex","经营现金流":"operating_cf",
     "利润增速":"profit_growth","增速":"revenue_growth","Rule of 40":"revenue_growth",
-    "EV/EBITDA":"ev_ebitda","P/FCF":"fcf_yield","库存增长":"inventory_growth","净利稳定性":"net_margin",
+    "EV/EBITDA":"ev_ebitda","PEG":"peg","P/FCF":"fcf_yield","库存增长":"inventory_growth","净利稳定性":"net_margin",
     "现金流":"operating_cf","库存":"inventory_growth","Beta":"beta","利息覆盖":"debt_ratio"};
   function _getPeriod(displayName){
     const k=_periodKeys[displayName];
@@ -362,7 +362,7 @@ function render(d){
   }
   
   let h2=`<div class="s">${d.finance_source||""} ${d.fiscal_year||""}</div><div class="gr">`;
-  const am=[["股价","$",dd.price],["当日涨幅","%",dd.chg],["市值",null,v(d.market_cap)],["PE(TTM)","x",dd.pe],["Forward PE","x",dd.pf],["52周高","$",dd.h52],["52周低","$",dd.l52],["营收(YoY)","%",dd.rg],["毛利率","%",dd.gm],["净利率","%",dd.nm],["EPS","$",dd.eps],["每股净值","$",dd.bv],["PS","x",dd.ps],["PB","x",dd.pb],["FCF(真实)","$",dd.fcf],["经营现金流","$",dd.ocf],["资本支出","$",dd.capex],["FCF Yield","%",dd.fy],["ROE","%",dd.roe],["ROIC","%",dd.roic],["ROA","%",dd.roa],["负债率","%",dd.dr],["流动比率","",dd.cr],["Beta","",dd.beta],["股息率","%",dd.dy]];
+  const am=[["股价","$",dd.price],["当日涨幅","%",dd.chg],["市值",null,v(d.market_cap)],["PE(TTM)","x",dd.pe],["Forward PE","x",dd.pf],["PEG","",dd.peg],["52周高","$",dd.h52],["52周低","$",dd.l52],["营收(YoY)","%",dd.rg],["毛利率","%",dd.gm],["净利率","%",dd.nm],["EPS","$",dd.eps],["每股净值","$",dd.bv],["PS","x",dd.ps],["PB","x",dd.pb],["EV/EBITDA","x",dd.ev],["FCF(真实)","$",dd.fcf],["经营现金流","$",dd.ocf],["资本支出","$",dd.capex],["FCF Yield","%",dd.fy],["ROE","%",dd.roe],["ROIC","%",dd.roic],["ROA","%",dd.roa],["负债率","%",dd.dr],["流动比率","",dd.cr],["Beta","",dd.beta],["股息率","%",dd.dy]];
   for(const[n,u,val]of am)if(val!==undefined&&!isNaN(val)){
     const dateStr=_getPeriod(n);
     h2+=`<div class="mi"><div class="ml">${n}${dateStr}</div><div class="mv ${n==='负债率'?val>0.5?'r':'g':val>0.15&&n!=='PE(TTM)'&&n!=='Forward PE'?'g':'s'}">${fmt(val,u)}</div></div>`;
@@ -1119,7 +1119,7 @@ function score(d,pk){
   const _k2api={rg:"revenue_growth",gm:"gross_margin",nm:"net_margin",pg:"profit_growth",
     pe:"pe",ps:"ps",pb:"pb",fy:"fcf_yield",ev:"ev_ebitda",roic:"roic",roe:"roe",
     dr:"debt_ratio",dy:"dividend_yield",fm:"fcf_margin"};
-  for(const[k,n,w_]of[["rg","营收增长率",w.rg||0],["pg","利润增长率",w.pg||0],["gm","毛利率",w.gm||0],["nm","净利率",w.nm||0],["pe","PE",w.pe||0],["ps","PS",w.ps||0],["pb","PB",w.pb||0],["fy","FCF Yield",w.fy||0],["ev","EV/EBITDA",w.ev_ebitda||w.ev||0],["roic","ROIC",w.roic||0],["roe","ROE",w.roe||0],["dr","负债率",w.dr||0],["dy","股息率",w.dy||0],["fm","FCF Margin",w.fm||0]]){
+  for(const[k,n,w_]of[["rg","营收增长率",w.rg||0],["pg","利润增长率",w.pg||0],["gm","毛利率",w.gm||0],["nm","净利率",w.nm||0],["pe","PE",w.pe||0],["ps","PS",w.ps||0],["pb","PB",w.pb||0],["peg","PEG",w.peg||0],["fy","FCF Yield",w.fy||0],["ev","EV/EBITDA",w.ev_ebitda||w.ev||0],["roic","ROIC",w.roic||0],["roe","ROE",w.roe||0],["dr","负债率",w.dr||0],["dy","股息率",w.dy||0],["fm","FCF Margin",w.fm||0]]){
     let val=v(d[k]);if(val===undefined||isNaN(val)||w_===0)continue;
     const periodTag = d._dates && d._dates[_k2api[k]] ? "·"+d._dates[_k2api[k]] : "";
     const isGood=!["pe","pb","dr","ev"].includes(k);
@@ -1142,7 +1142,7 @@ function score(d,pk){
       else sc=Math.max(5,60-40*Math.min((val/bm-1),2));
     }
     sc=Math.round(Math.min(100,Math.max(0,sc)));ts+=sc*w_/100;tw+=w_/100;
-    pr.push({n,val:fmt(val,k==='pe'||k==='ps'||k==='pb'||k==='ev'?"x":k==='dy'||k.startsWith("r")||k==='gm'||k==='nm'||k==='fy'||k==='fm'||k==='roe'||k==='dr'||k==='roic'?"%":""),sc,w:w_,period:periodTag});
+    pr.push({n,val:fmt(val,k==='pe'||k==='ps'||k==='pb'||k==='ev'?"x":k==='peg'?"":k==='dy'||k.startsWith("r")||k==='gm'||k==='nm'||k==='fy'||k==='fm'||k==='roe'||k==='dr'||k==='roic'?"%":""),sc,w:w_,period:periodTag});
   }
   
   // 利润质量调整

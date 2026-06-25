@@ -591,8 +591,9 @@ def parse_ashare_financials(fd, code):
         if "cashflow" in em_fin and em_fin["cashflow"]:
             row = _map_em_cashflow(em_fin["cashflow"][0])
             fd["operating_cashflow"] = _float(row.get("经营活动产生的现金流量净额"))
-            fd["free_cashflow"] = _float(row.get("经营活动产生的现金流量净额"))  # FCF近似
-            fd["capex"] = _float(row.get("购建固定资产、无形资产和其他长期资产支付的现金"))
+            cap = _float(row.get("购建固定资产、无形资产和其他长期资产支付的现金"))
+            fd["capex"] = cap
+            fd["free_cashflow"] = (fd["operating_cashflow"] or 0) - (abs(cap) if cap else 0)  # FCF = OCF - Capex
         
         fd["_data_source"] = "eastmoney_api"
         return fd
@@ -633,8 +634,9 @@ def parse_ashare_financials(fd, code):
     if "cashflow" in fin and fin["cashflow"]:
         row = fin["cashflow"][0]
         fd["operating_cashflow"] = _float_str(row.get("经营活动产生的现金流量净额"))
-        fd["free_cashflow"] = _float_str(row.get("经营活动产生的现金流量净额"))  # FCF近似
-        fd["capex"] = _float_str(row.get("购建固定资产、无形资产和其他长期资产支付的现金"))
+        cap = _float_str(row.get("购建固定资产、无形资产和其他长期资产支付的现金"))
+        fd["capex"] = cap
+        fd["free_cashflow"] = (fd["operating_cashflow"] or 0) - (abs(cap) if cap else 0)
     
     fd["_data_source"] = "ashare_adapter"
     return fd
