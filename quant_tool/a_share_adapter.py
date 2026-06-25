@@ -392,12 +392,17 @@ def _map_em_income(row):
         "研发费用": row.get("MANAGE_EXPENSE"),  # EM无独立研发费用，用管理费用近似
         "所得税": row.get("INCOME_TAX"),
         "基本每股收益": row.get("BASIC_EPS"),
+        "稀释每股收益": row.get("DILUTED_EPS"),
         "报告日": str(row.get("REPORT_DATE", ""))[:10],
     }
 
 
 def _map_em_balance(row):
     """将东方财富资产负债表字段映射到统一格式"""
+    # EM的CURRENT_RATIO和DEBT_ASSET_RATIO返回的是百分比值(如706→7.06), 需/100
+    cr_raw = row.get("CURRENT_RATIO")
+    dar_raw = row.get("DEBT_ASSET_RATIO")
+    
     mapped = {
         "资产总计": row.get("TOTAL_ASSETS"),
         "负债合计": row.get("TOTAL_LIABILITIES"),
@@ -406,8 +411,8 @@ def _map_em_balance(row):
         "存货": row.get("INVENTORY"),
         "应收账款": row.get("ACCOUNTS_RECE"),
         "固定资产": row.get("FIXED_ASSET"),
-        "流动比率": row.get("CURRENT_RATIO"),
-        "资产负债率": row.get("DEBT_ASSET_RATIO"),
+        "流动比率": round(cr_raw / 100, 4) if cr_raw else None,
+        "资产负债率": round(dar_raw / 100, 4) if dar_raw else None,
         "报告日": str(row.get("REPORT_DATE", ""))[:10],
     }
     return mapped
@@ -548,7 +553,20 @@ def parse_ashare_financials(fd, code):
             fd["total_cost"] = _float(row.get("营业总成本"))
             fd["rd_expense"] = _float(row.get("研发费用"))
             fd["sga_expense"] = _float(row.get("销售费用"))
+            fd["eps"] = _float(row.get("基本每股收益"))
             fd["report_date"] = str(row.get("报告日", ""))[:10]
+            
+            # 营收增速(YoY): 取最近两期数据
+            if len(em_fin["income"]) >= 2:
+                row_prev = _map_em_income(em_fin["income"][1])
+                rev_curr = _float(row.get("营业总收入"))
+                rev_prev = _float(row_prev.get("营业总收入"))
+                if rev_curr and rev_prev and rev_prev > 0:
+                    fd["revenue_growth"] = round((rev_curr - rev_prev) / rev_prev, 4)
+                ni_curr = _float(row.get("净利润"))
+                ni_prev = _float(row_prev.get("净利润"))
+                if ni_curr and ni_prev and ni_prev > 0:
+                    fd["profit_growth"] = round((ni_curr - ni_prev) / ni_prev, 4)
         
         # 资产负债表
         if "balance" in em_fin and em_fin["balance"]:
@@ -559,8 +577,8 @@ def parse_ashare_financials(fd, code):
             fd["cash_and_equivalents"] = _float(row.get("货币资金"))
             fd["inventory"] = _float(row.get("存货"))
             fd["accounts_receivable"] = _float(row.get("应收账款"))
-            # book_value_per_share需要股份数，EM接口没有直接提供，后续通过衍生计算
-            fd["book_value_per_share"] = None
+            fd["current_ratio"] = _float(row.get("流动比率"))
+            fd["debt_ratio"] = _float(row.get("资产负债率"))
         
         # 现金流量表
         if "cashflow" in em_fin and em_fin["cashflow"]:

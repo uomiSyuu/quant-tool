@@ -887,36 +887,53 @@ def fetch_live(symbol):
                 except:
                     fd["_report_period"] = rd[:8]
             
-            # v8.7: 补充衍生指标（不在parse_ashare_financials中计算的）
-            # 毛利率: total revenue - total cost approximation
-            if fd.get("gross_profit") is None and fd.get("revenue") and fd.get("total_cost") and fd["revenue"] > 0:
+            # v8.7+: 补充衍生指标（A股数据丰富度提升至美股水平）
+            # EPS = price / pe (pe是TTM PE，所以eps也是TTM)
+            if fd.get("eps") is None and fd.get("price") and fd.get("pe") and fd["pe"] > 0:
+                fd["eps"] = round(fd["price"] / fd["pe"], 4)
+            # 毛利率
+            if fd.get("gross_margin") is None and fd.get("gross_profit") and fd.get("revenue") and fd["revenue"] > 0:
+                fd["gross_margin"] = round(fd["gross_profit"] / fd["revenue"], 4)
+            if fd.get("gross_margin") is None and fd.get("revenue") and fd.get("total_cost") and fd["revenue"] > 0:
                 est_gp = fd["revenue"] - fd["total_cost"]
                 if est_gp > 0:
                     fd["gross_margin"] = round(est_gp / fd["revenue"], 4)
             # 净利率
             if fd.get("net_margin") is None and fd.get("net_income") and fd.get("revenue") and fd["revenue"] > 0:
                 fd["net_margin"] = round(fd["net_income"] / fd["revenue"], 4)
-            # ROE = net_income / equity (期间需要年化: 单季度*4)
+            # 营业利润率
+            if fd.get("operating_margin") is None and fd.get("operating_income") and fd.get("revenue") and fd["revenue"] > 0:
+                fd["operating_margin"] = round(fd["operating_income"] / fd["revenue"], 4)
+            # ROE
             if fd.get("roe") is None and fd.get("net_income") and fd.get("equity") and fd["equity"] > 0:
                 fd["roe"] = round(fd["net_income"] * 4 / fd["equity"], 4)
-            # ROIC 近似: net_income / (equity + total_liabilities)
+            # ROIC
             if fd.get("roic") is None and fd.get("net_income") and fd.get("equity") and fd.get("total_liabilities"):
                 tc = fd["equity"] + fd["total_liabilities"]
                 if tc > 0:
                     fd["roic"] = round(fd["net_income"] * 4 / tc, 4)
-            # FCF Yield = FCF / market_cap
+            # ROA = net_income / total_assets
+            if fd.get("roa") is None and fd.get("net_income") and fd.get("total_assets") and fd["total_assets"] > 0:
+                fd["roa"] = round(fd["net_income"] * 4 / fd["total_assets"], 4)
+            # FCF Yield
             if fd.get("fcf_yield") is None and fd.get("free_cashflow") and fd.get("market_cap") and fd["market_cap"] > 0:
                 fcf_annual = fd["free_cashflow"] * 4 if fd["free_cashflow"] < fd["market_cap"] * 0.5 else fd["free_cashflow"]
                 fd["fcf_yield"] = round(fcf_annual / fd["market_cap"], 4)
-            # EV/EBITDA 近似 = market_cap / (ebitda or ebit)
+            # FCF Margin
+            if fd.get("fcf_margin") is None and fd.get("free_cashflow") and fd.get("revenue") and fd["revenue"] > 0:
+                fd["fcf_margin"] = round(fd["free_cashflow"] * 4 / fd["revenue"], 4)
+            # EV/EBITDA
             if fd.get("ev_ebitda") is None and fd.get("market_cap") and fd["market_cap"] > 0:
                 ebitda_val = fd.get("ebitda") or fd.get("operating_income")
                 if ebitda_val and ebitda_val > 0:
                     fd["ev_ebitda"] = round(fd["market_cap"] / (ebitda_val * 4), 2)
-            # revenue_growth (parse_ashare仅取1期, 无同比)
-            # profit_growth 同理
-            # PB: 不要用 price/equity 覆盖（equity是总股东权益不是每股净值）
-            # EastMoney的PB如果能拿到就用，拿不到就算了
+            # 负债率（如果EastMoney没返回，手动计算）
+            if fd.get("debt_ratio") is None and fd.get("total_liabilities") and fd.get("total_assets") and fd["total_assets"] > 0:
+                fd["debt_ratio"] = round(fd["total_liabilities"] / fd["total_assets"], 4)
+            # PS = 市值 / 年化营收
+            if fd.get("ps") is None and fd.get("market_cap") and fd.get("revenue") and fd["revenue"] > 0 and fd["market_cap"] > 0:
+                fd["ps"] = round(fd["market_cap"] / (fd["revenue"] * 4), 2)
+            # PB（如果没有从行情拿到）
             if fd.get("pb") is None and fd.get("price") and fd.get("book_value_per_share") and fd["book_value_per_share"] > 0:
                 fd["pb"] = round(fd["price"] / fd["book_value_per_share"], 2)
             
