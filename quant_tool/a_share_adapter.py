@@ -178,8 +178,11 @@ def get_ashare_quotes(symbols, timeout=10):
                 if pct_raw:
                     results[raw_id]["change_pct"] = round(pct_raw / 100.0, 2)
                 pb_raw = ed.get("f55")
-                if pb_raw and 0 < pb_raw < 1000:
-                    results[raw_id]["pb"] = round(pb_raw / 100.0, 2)
+                if pb_raw is not None and pb_raw != 0:
+                    # 东方财富f55的单位: 如果绝对值>1，需要/100；如果绝对值<1，已经是小数
+                    pb_val = pb_raw if abs(pb_raw) < 10 else pb_raw / 100.0
+                    if 0 < pb_val < 100:
+                        results[raw_id]["pb"] = round(pb_val, 2)
         except Exception as e:
             pass  # EastMoney作为增强，失败不影响基础数据
     
@@ -543,6 +546,10 @@ def parse_ashare_financials(fd, code):
     # === 1. 东方财富直连API（主数据源）===
     em_fin = get_ashare_financials_eastmoney(code)
     if em_fin:
+        # 行业名称（用于数据分位）
+        if "income" in em_fin and em_fin["income"] and em_fin["income"][0].get("INDUSTRY_NAME"):
+            fd["_cn_sector"] = em_fin["income"][0]["INDUSTRY_NAME"]
+        
         # 利润表
         if "income" in em_fin and em_fin["income"]:
             row = _map_em_income(em_fin["income"][0])

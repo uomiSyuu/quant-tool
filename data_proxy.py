@@ -843,7 +843,7 @@ def fetch_live(symbol):
                 fd["pe"] = q.get("pe") or q.get("pe_dynamic")
                 fd["market_cap"] = q.get("market_cap")
                 fd["pb"] = q.get("pb")
-                fd["_cn_sector"] = "A股"
+                fd["_cn_sector"] = fd.get("_cn_sector") or "A股"
             
             # v8.7: Tencent API 补充PE/PB/市值（EastMoney挂掉时的备胎）
             if not fd.get("pe") or not fd.get("pb") or not fd.get("market_cap"):
@@ -933,11 +933,13 @@ def fetch_live(symbol):
             # PS = 市值 / 年化营收
             if fd.get("ps") is None and fd.get("market_cap") and fd.get("revenue") and fd["revenue"] > 0 and fd["market_cap"] > 0:
                 fd["ps"] = round(fd["market_cap"] / (fd["revenue"] * 4), 2)
-            # PB（如果没有从行情拿到）
+            # PB（如果没有从行情拿到，用市值/净资产估算）
             if fd.get("pb") is None and fd.get("price") and fd.get("book_value_per_share") and fd["book_value_per_share"] > 0:
                 fd["pb"] = round(fd["price"] / fd["book_value_per_share"], 2)
+            if fd.get("pb") is None and fd.get("market_cap") and fd.get("equity") and fd["equity"] > 0:
+                fd["pb"] = round(fd["market_cap"] / fd["equity"], 2)
             
-            return fd
+            # 继续到衍生计算步骤（不能return，否则会跳过百分位/稳定性/周期/风险评估）
         except Exception as e:
             print(f"[fetch_ashare] {symbol}: {e}")
             # fallback到akshare旧逻辑
