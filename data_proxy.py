@@ -1413,14 +1413,38 @@ def fetch_live(symbol):
         if fd["market_cap"] / fd["price"] < 50000000:
             fd["market_cap"] *= 1000
 
-    # ====== 6. 行业识别(v7.5: 用westock profile中文名映射, 替代硬编码SECTOR_MAP) ======
-    cn_sector = (fd.get("_cn_sector") or "").lower()
+    # ====== 6. 行业识别(v1.0: sector_mapper代码查询, 替代关键词匹配) ======
+    # A股: 用sector_mapper按代码查申万二级行业→内部分类
+    # 美股: 直接用腾讯API返回的sector
     sector = "general"
-    for cn_key, en_key in SECTOR_CN_MAP.items():
-        if cn_key in cn_sector:
-            sector = en_key
-            break
-    # 少数股票手动覆盖（如苹果虽电子技术但实为消费硬件）
+    if prefix in ("sh", "sz", "bj"):
+        try:
+            from sector_mapper import get_stock_industry, get_sector_by_industry
+            si = get_stock_industry(stock_code)
+            if si:
+                sector = si["sector"]
+                fd["_cn_sector"] = si["cn_sector"]
+            else:
+                # fallback: 用东方财富的INDUSTRY_NAME
+                cn_name = fd.get("_cn_sector", "")
+                sector = get_sector_by_industry(cn_name)
+        except Exception as e:
+            # fallback到旧关键词匹配
+            cn_sector = (fd.get("_cn_sector") or "").lower()
+            for cn_key, en_key in SECTOR_CN_MAP.items():
+                if cn_key in cn_sector:
+                    sector = en_key
+                    break
+    elif prefix == "us":
+        # 美股直接用腾讯API或westock返回的sector
+        sector = fd.get("sector") or "general"
+        # 如果是英文GICS名，映射到内部分类
+        try:
+            from sector_mapper import get_gics_sector
+            sector = get_gics_sector(sector)
+        except:
+            pass
+    # 少数股票手动覆盖
     sector = SECTOR_OVERRIDE.get(sym, sector)
     fd["sector"] = sector
 
@@ -3515,6 +3539,15 @@ def get_chains_v83():
 
 # ====== 初始化快照数据库 ======
 _init_snapshot_db()
+
+# ====== 初始化行业分类缓存 ======
+try:
+    from sector_mapper import update_cache
+    import threading
+    _t = threading.Thread(target=update_cache, daemon=True)
+    _t.start()
+except:
+    pass
 
 if __name__ == "__main__":
     _port = int(os.environ.get("PORT", 5001))
