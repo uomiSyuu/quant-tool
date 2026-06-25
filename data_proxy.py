@@ -1262,12 +1262,25 @@ def fetch_live(symbol):
         except Exception as e:
             print(f"[yf_overlay_us] {symbol}: {e}")
 
-    # ====== v9.0+: SEC EDGAR 最终覆盖（使用模块级导入，确保执行）======
+    # ====== v9.0+: SEC EDGAR 最终覆盖（仅补充缺失数据，不覆盖已有数据）======
+    # 注意: westock/yfinance如果有更新的数据，保留它们的
     if prefix == "us" and _SEC_AVAILABLE:
         try:
+            # 保存当前数据快照
+            _existing = {k: v for k, v in fd.items() if k not in ("_report_period", "_report_date", "_data_source")}
+            _pre_rd = fd.get("report_date", "")
+            
             fd = parse_sec_financials(fd, sym)
             rd = fd.get("report_date", "")
-            if rd and len(rd) >= 10:
+            
+            # 如果SEC数据比已有的旧，恢复westock的数据
+            if rd and _pre_rd and rd < _pre_rd:
+                # SEC数据更旧，回滚金融字段到westock版本
+                for k, v in _existing.items():
+                    fd[k] = v
+                fd["report_date"] = _pre_rd
+                fd["_data_source"] = f"westock_{_pre_rd[:10]}"
+            elif rd and len(rd) >= 10:
                 from datetime import datetime
                 fp = calc_us_fiscal_period(rd, sym)
                 if fp:
@@ -1277,7 +1290,7 @@ def fetch_live(symbol):
                     q = (dt.month - 1) // 3 + 1
                     fd["_report_period"] = f"FY{dt.year%100}Q{q}"
                 fd["_report_date"] = rd[:10]
-                fd["_data_source"] = "sec_edgar_v9.0_final"
+                fd["_data_source"] = f"sec_edgar_{rd[:10]}"
         except Exception as e:
             print(f"[sec_final] {symbol}: {e}")
 
@@ -1802,8 +1815,9 @@ def stock(symbol):
 
     name = fd.get("_name", sym)
     sector = fd.get("sector", "general")
+    ds = fd.get("_data_source", "westock v8.6")
     result = {"name": name, "symbol": sym, "sector": sector,
-              "finance_source": "westock v8.6", "version": "v8.6"}
+              "finance_source": ds, "version": "v9.1"}
 
     today_fields = [("price","股价"),("pe","PE"),("pe_forward","Forward PE"),
                     ("market_cap","市值"),("pb","PB"),("ps","PS"),("dividend_yield","股息率"),
