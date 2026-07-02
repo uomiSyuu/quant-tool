@@ -2634,43 +2634,90 @@ def time_propagation(impact_score):
 # ====== 新闻扫描 & 语义分析 API ======
 
 def _fetch_news(keywords, max_results=50):
-    """拉取全球财经新闻（akshare + 备用源）"""
+    """拉取全球财经新闻（东方财富API直连，无需akshare）"""
     articles = []
-    try:
-        import akshare as ak
-        df = ak.stock_info_global_em()
-        if df is not None and len(df) > 0:
-            for _, row in df.iterrows():
-                title = str(row.get("标题", row.get("title", "")))
-                content = str(row.get("内容", row.get("content", "")))
-                time_str = str(row.get("发布时间", row.get("time", "")))
-                if title and title != "nan":
-                    articles.append({
-                        "title": title,
-                        "content": content if content != "nan" else "",
-                        "time": time_str if time_str != "nan" else "",
-                        "source": "东方财富"
-                    })
-    except Exception as e:
-        print(f"[news] akshare global: {e}")
     
-    # 备用：百度财经新闻
-    if len(articles) < 5:
+    # 主源：东方财富全球财经快讯 https://kuaixun.eastmoney.com/
+    try:
+        import requests as _req
+        url = "https://np-weblist.eastmoney.com/comm/web/getFastNewsList"
+        params = {
+            "client": "web",
+            "biz": "web_724",
+            "fastColumn": "102",
+            "sortEnd": "",
+            "pageSize": "200",
+            "req_trace": "1710315450384",
+        }
+        r = _req.get(url, params=params, timeout=15)
+        data = r.json()
+        for item in data.get("data", {}).get("fastNewsList", []):
+            title = str(item.get("title", ""))
+            content = str(item.get("summary", ""))
+            time_str = str(item.get("showTime", ""))
+            if title and title != "nan":
+                articles.append({
+                    "title": title,
+                    "content": content if content != "nan" else "",
+                    "time": time_str if time_str != "nan" else "",
+                    "source": "东方财富"
+                })
+    except Exception as e:
+        print(f"[news] eastmoney fast news: {e}")
+    
+    # 备用：按关键词搜索东方财富新闻（增加产业链匹配命中率）
+    if len(articles) < 10 and keywords:
         try:
-            import akshare as ak
-            df = ak.news_economic_baidu(date="")
-            if df is not None and len(df) > 0:
-                for _, row in df.head(30).iterrows():
-                    title = str(row.get("title", row.get("标题", "")))
-                    if title and title != "nan":
-                        articles.append({
-                            "title": title,
-                            "content": "",
-                            "time": "",
-                            "source": "百度财经"
-                        })
+            import requests as _req
+            url = "https://search-api-web.eastmoney.com/search/jsonp"
+            for kw in keywords[:10]:
+                try:
+                    inner_param = {
+                        "uid": "",
+                        "keyword": kw,
+                        "type": ["cmsArticleWebOld"],
+                        "client": "web",
+                        "clientType": "web",
+                        "clientVersion": "curr",
+                        "param": {
+                            "cmsArticleWebOld": {
+                                "searchScope": "default",
+                                "sort": "default",
+                                "pageIndex": 1,
+                                "pageSize": 10,
+                                "preTag": "<em>",
+                                "postTag": "</em>",
+                            }
+                        },
+                    }
+                    params = {
+                        "cb": "callback",
+                        "param": json.dumps(inner_param, ensure_ascii=False),
+                    }
+                    headers = {
+                        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+                        "Referer": f"https://so.eastmoney.com/news/s?keyword={kw}",
+                    }
+                    resp = _req.get(url, params=params, headers=headers, timeout=15)
+                    text = resp.text
+                    if text.startswith("callback(") and text.endswith(")"):
+                        text = text[len("callback("):-1]
+                    data = json.loads(text)
+                    for item in data.get("result", {}).get("cmsArticleWebOld", []):
+                        title = str(item.get("title", "")).replace("<em>", "").replace("</em>", "")
+                        content = str(item.get("content", "")).replace("<em>", "").replace("</em>", "").replace("\u3000", "").replace("\r\n", " ")
+                        time_str = str(item.get("date", ""))
+                        if title and title != "nan":
+                            articles.append({
+                                "title": title,
+                                "content": content if content != "nan" else "",
+                                "time": time_str if time_str != "nan" else "",
+                                "source": "东方财富"
+                            })
+                except Exception as e2:
+                    print(f"[news] search '{kw}': {e2}")
         except Exception as e:
-            print(f"[news] baidu: {e}")
+            print(f"[news] eastmoney search: {e}")
     
     return articles[:max_results]
 
